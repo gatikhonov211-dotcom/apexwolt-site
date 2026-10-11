@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Каталог — APEXWOLT</title>
+  <meta name="description" content="Каталог APEXWOLT для партнёров: МРЦ, наличие и характеристики. Персональные условия — после входа.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body data-page="category">
+  <a class="skip-link" href="#main">К содержимому</a>
+  <div data-slot="header"></div>
+
+  <main id="main" class="page">
+    <nav class="breadcrumbs" aria-label="Навигация" id="breadcrumbs"></nav>
+
+    <header class="category-head">
+      <h1 id="category-title">Каталог</h1>
+      <p class="category-lead" id="category-lead"></p>
+    </header>
+
+    <div class="subcats" role="tablist" aria-label="Категории" id="subcats"></div>
+
+    <section class="toolbar" aria-label="Фильтры и сортировка">
+      <button type="button" class="filter-toggle" id="filter-toggle" aria-expanded="false" aria-controls="filter-panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        Выбор по параметрам
+        <span class="badge" id="filter-count" hidden></span>
+      </button>
+
+      <form class="filter-panel" id="filter-panel" hidden></form>
+
+      <div class="toolbar-row">
+        <label class="sort">
+          <span>Сортировать:</span>
+          <select id="sort">
+            <option value="stock">По наличию</option>
+            <option value="new">Сначала новинки</option>
+            <option value="price-asc">Сначала дешевле</option>
+            <option value="price-desc">Сначала дороже</option>
+            <option value="name">По названию</option>
+          </select>
+        </label>
+        <div class="active-filters" id="active-filters" aria-live="polite"></div>
+        <div class="view-switch" role="group" aria-label="Вид каталога">
+          <button type="button" data-view="grid" aria-pressed="true" aria-label="Сетка">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>
+          </button>
+          <button type="button" data-view="list" aria-pressed="false" aria-label="Список">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <p class="result-count" id="result-count" aria-live="polite"></p>
+    <div class="products is-grid" id="products"></div>
+
+    <div class="paging" id="paging">
+      <button type="button" class="button button-ghost" id="load-more">Показать ещё</button>
+      <nav class="pagination" id="pagination" aria-label="Страницы"></nav>
+    </div>
+  </main>
+
+  <div data-slot="footer"></div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/category.js"></script>
+</body>
+</html>

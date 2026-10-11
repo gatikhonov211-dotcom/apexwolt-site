@@ -1,6 +1,6 @@
 /* Локальное состояние: избранное, сравнение, заявка. Только localStorage — это прототип без backend. */
 (function () {
-  const KEYS = { fav: 'apx-weld-fav', cmp: 'apx-weld-compare', req: 'apx-weld-request' };
+  const KEYS = { fav: 'apx-fav', cmp: 'apx-compare', req: 'apx-request' };
   const COMPARE_LIMIT = 4;
   const listeners = new Set();
 

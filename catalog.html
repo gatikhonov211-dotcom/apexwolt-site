@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Каталог APEXWOLT — все направления</title>
+  <meta name="description" content="Все направления каталога APEXWOLT: аккумуляторный и сетевой инструмент, сварочное, строительное и тепловое оборудование, оснастка, крепёж.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body data-page="catalog">
+  <a class="skip-link" href="#main">К содержимому</a>
+  <div data-slot="header"></div>
+
+  <main id="main" class="page">
+    <nav class="breadcrumbs" aria-label="Навигация">
+      <a href="index.html">Главная</a><span aria-hidden="true">/</span><span aria-current="page">Каталог</span>
+    </nav>
+    <header class="category-head">
+      <h1>Каталог</h1>
+      <p class="category-lead" id="catalog-lead"></p>
+    </header>
+    <div class="catalog-index" id="catalog-index"></div>
+  </main>
+
+  <div data-slot="footer"></div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script>
+    (function () {
+      const { sections, categories, products } = window.APEX_DATA;
+      const { esc, plural } = window.ApexUI;
+      const count = keys => products.filter(p => keys.includes(p.category)).length;
+      document.getElementById('catalog-lead').textContent =
+        `${sections.length} направлений, ${Object.keys(categories).length} категорий и ${products.length} ${plural(products.length, 'позиция', 'позиции', 'позиций')}. Выберите направление или категорию.`;
+      document.getElementById('catalog-index').innerHTML = sections.map(s => {
+        const n = count(s.categories);
+        return `<section class="cat-section" aria-labelledby="sec-${s.key}">
+          <a class="cat-section-head" href="category.html?section=${s.key}">
+            <img src="assets/img/icons/${s.key}.svg" alt="" width="28" height="28">
+            <span><b id="sec-${s.key}">${esc(s.title)}</b><small>${n} ${plural(n, 'товар', 'товара', 'товаров')}</small></span>
+          </a>
+          <ul>${s.categories.map(c => {
+            const k = count([c]);
+            return `<li><a href="category.html?category=${c}">${esc(categories[c].title)}<i>${k}</i></a></li>`;
+          }).join('')}</ul>
+        </section>`;
+      }).join('');
+    })();
+  </script>
+</body>
+</html>

@@ -1,76 +1,64 @@
-// Собирает assets/js/data.js из каталога основного проекта APEXWOLT B2B.
-// Запуск: node tools/build-data.mjs [путь к catalog.data.js]
-// По умолчанию берёт ../apexwolt-b2b/dist/catalog.data.js рядом с этим проектом.
+// Собирает assets/js/data.js и копирует фото товаров из основного проекта APEXWOLT B2B.
+// Запуск: node tools/build-data.mjs [путь к папке dist основного проекта]
+// По умолчанию — ../apexwolt-b2b/dist рядом с этим проектом.
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const source = path.resolve(process.argv[2] || path.join(root, '..', 'apexwolt-b2b', 'dist', 'catalog.data.js'));
-const CATEGORY = 'svarochnye-apparaty';
+const dist = path.resolve(process.argv[2] || path.join(root, '..', 'apexwolt-b2b', 'dist'));
+const imgOut = path.join(root, 'assets', 'img', 'catalog');
+
+// Новинки — тот же список, что на главной основного сайта (dist/catalog-shop.js, NOVELTY_IDS).
+const shopJs = fs.readFileSync(path.join(dist, 'catalog-shop.js'), 'utf8');
+const noveltyBlock = shopJs.match(/NOVELTY_IDS\s*=\s*\[([\s\S]*?)\]/);
+const novelties = noveltyBlock ? [...noveltyBlock[1].matchAll(/'([^']+)'/g)].map(m => m[1]) : [];
 
 const context = {};
 vm.createContext(context);
-vm.runInContext(`${fs.readFileSync(source, 'utf8')};this.categoryData=categoryData;`, context);
-const category = context.categoryData[CATEGORY];
-if (!category) throw new Error(`Категория ${CATEGORY} не найдена в ${source}`);
+vm.runInContext(`${fs.readFileSync(path.join(dist, 'catalog.data.js'), 'utf8')};this.categoryData=categoryData;this.sectionData=sectionData;`, context);
+const { categoryData, sectionData } = context;
 
-const num = s => parseFloat(String(s).replace(',', '.'));
-const spec = (specs, re) => {
-  const line = specs.find(s => re.test(s));
-  return line ? line.slice(line.indexOf(':') + 1).trim() : '';
+// Логотип как «картинка категории» в исходнике означает «фото нет» — показываем фирменную заглушку.
+const isPlaceholder = src => !src || /apexwolt-logo/.test(src);
+fs.mkdirSync(imgOut, { recursive: true });
+const copied = new Map();
+const image = src => {
+  if (isPlaceholder(src)) return '';
+  if (copied.has(src)) return copied.get(src);
+  const from = path.join(dist, src);
+  if (!fs.existsSync(from)) { console.warn(`нет файла: ${src}`); copied.set(src, ''); return ''; }
+  const name = path.basename(src);
+  fs.copyFileSync(from, path.join(imgOut, name));
+  const out = `assets/img/catalog/${name}`;
+  copied.set(src, out);
+  return out;
 };
-const range = text => {
-  const m = text.match(/([\d,]+)\s*[–-]\s*([\d,]+)/);
-  return m ? [num(m[1]), num(m[2])] : null;
-};
-const yes = text => /^(да|есть)/i.test(text);
 
-const products = category.variants.map(v => {
-  const [id, sku, name, stock, lead, price, specs, brand, , mp, description, image, eta] = v;
-  const type = spec(specs, /^Тип сварки/);
-  const processes = [
-    /MMA/.test(type) && 'MMA',
-    /MIG/.test(type) && 'MIG/MAG',
-    /FLUX/.test(type) && 'FLUX',
-    /TIG/.test(type) && 'TIG'
-  ].filter(Boolean);
-  const kind = /MIG/.test(type) ? 'mig' : 'mma';
-  const current = range(spec(specs, /^(Диапазон регулирования сварочного тока|Сварочный ток MIG)/)) || [0, 0];
-  const mains = range(spec(specs, /^(Параметры сети|Диапазон рабочего напряжения)/)) || [0, 0];
-  const duty = spec(specs, /^Продолжительность нагружения/);
-  const wire = spec(specs, /^Диаметр сварочной проволоки/);
-  const mmaFunctions = spec(specs, /^(Hot Start|Arc Force \/ Hot Start)/);
-  return {
-    id, sku, name, brand: brand || 'APEXWOLT', kind, processes,
-    stock: Boolean(stock), lead, price, mp: mp ?? null, eta: eta || '',
-    current, mains,
-    duty: duty.replace(/\s+при.*/, ''),
-    electrode: num(spec(specs, /диаметр электрода/i)) || null,
-    wire: wire ? wire.split('/').map(s => num(s)) : [],
-    weight: num(spec(specs, /^Масса/)) || null,
-    hotStart: yes(mmaFunctions),
-    synergic: yes(spec(specs, /^Синергетическое/)),
-    twoFourT: yes(spec(specs, /2T\/4T/)),
-    image: `assets/img/products/${path.basename(image)}`,
-    description, specs
-  };
+const sectionOf = {};
+const sections = Object.entries(sectionData).map(([key, s]) => {
+  s.categories.forEach(c => { sectionOf[c] = key; });
+  return { key, title: s.title, description: s.description || '', categories: s.categories.filter(c => categoryData[c]) };
 });
 
-const out = `/* Сгенерировано tools/build-data.mjs из каталога APEXWOLT B2B — не редактировать вручную. */
-window.APEX_DATA = ${JSON.stringify({
-  section: {
-    key: 'svarochnoe-oborudovanie',
-    title: 'Сварочное оборудование',
-    lead: 'Инверторы MMA и полуавтоматы MIG/MAG APEXWOLT для мастерских, производства и выездных работ. МРЦ и наличие — открыто, партнёрские условия — после входа.'
-  },
-  subcategories: [
-    { key: 'mma', title: 'Инверторы MMA' },
-    { key: 'mig', title: 'Полуавтоматы MIG/MAG' }
-  ],
-  products
-}, null, 2)};
-`;
-fs.writeFileSync(path.join(root, 'assets', 'js', 'data.js'), out);
-console.log(`data.js: ${products.length} товаров из ${source}`);
+const categories = {};
+const products = [];
+for (const [key, c] of Object.entries(categoryData)) {
+  if (!sectionOf[key]) { console.warn(`категория без направления пропущена: ${key}`); continue; }
+  categories[key] = { title: c.title, section: sectionOf[key], image: image(c.image) };
+  for (const v of c.variants) {
+    const [id, sku, name, stock, lead, price, specs, brand, , , description, img, eta] = v;
+    products.push({
+      id, sku, name, brand: brand || '', category: key,
+      stock: Number(stock) || 0, lead: Number(lead) || 0, price: Number(price) || 0,
+      eta: eta || '', description: description || '', specs: specs || [],
+      image: image(img) || categories[key].image
+    });
+  }
+}
+
+const data = { sections, categories, products, novelties: novelties.filter(id => products.some(p => p.id === id)) };
+fs.writeFileSync(path.join(root, 'assets', 'js', 'data.js'),
+  `/* Сгенерировано tools/build-data.mjs из каталога APEXWOLT B2B — не редактировать вручную. */\nwindow.APEX_DATA = ${JSON.stringify(data)};\n`);
+console.log(`data.js: ${sections.length} направлений, ${Object.keys(categories).length} категорий, ${products.length} товаров, ${data.novelties.length} новинок, ${[...copied.values()].filter(Boolean).length} фото`);

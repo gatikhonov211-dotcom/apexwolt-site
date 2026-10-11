@@ -3,86 +3,103 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Сварочное оборудование APEXWOLT — оптом для партнёров</title>
-  <meta name="description" content="Инверторы MMA и полуавтоматы MIG/MAG APEXWOLT: МРЦ, наличие и характеристики. Персональные условия для партнёров — после входа.">
+  <title>APEXWOLT — инструмент и оборудование оптом для партнёров</title>
+  <meta name="description" content="B2B-платформа APEXWOLT: электроинструмент, сварочное оборудование, оснастка и крепёж. МРЦ и наличие открыто, персональные условия — после входа.">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" as="image" href="assets/img/video/apexwolt-film-poster.webp">
   <link rel="stylesheet" href="assets/css/app.css">
 </head>
-<body data-page="catalog">
+<body data-page="home">
   <a class="skip-link" href="#main">К содержимому</a>
   <div data-slot="header"></div>
 
-  <main id="main" class="page">
-    <nav class="breadcrumbs" aria-label="Навигация">
-      <a href="https://apexwolt-b2b-preview.netlify.app/">Главная</a>
-      <span aria-hidden="true">/</span>
-      <span aria-current="page">Сварочное оборудование</span>
-    </nav>
-
-    <header class="category-head">
-      <h1 id="category-title">Сварочное оборудование</h1>
-      <p class="category-lead" id="category-lead"></p>
-    </header>
-
-    <div class="subcats" role="tablist" aria-label="Подкатегории" id="subcats"></div>
-
-    <section class="toolbar" aria-label="Фильтры и сортировка">
-      <button type="button" class="filter-toggle" id="filter-toggle" aria-expanded="false" aria-controls="filter-panel">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
-        Выбор по параметрам
-        <span class="badge" id="filter-count" hidden></span>
-      </button>
-
-      <form class="filter-panel" id="filter-panel" hidden></form>
-
-      <div class="toolbar-row">
-        <label class="sort">
-          <span>Сортировать:</span>
-          <select id="sort">
-            <option value="stock">По наличию</option>
-            <option value="price-asc">Сначала дешевле</option>
-            <option value="price-desc">Сначала дороже</option>
-            <option value="current-desc">По сварочному току</option>
-            <option value="weight-asc">Сначала лёгкие</option>
-            <option value="name">По названию</option>
-          </select>
-        </label>
-        <div class="active-filters" id="active-filters" aria-live="polite"></div>
-        <div class="view-switch" role="group" aria-label="Вид каталога">
-          <button type="button" data-view="grid" aria-pressed="true" aria-label="Сетка">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>
-          </button>
-          <button type="button" data-view="list" aria-pressed="false" aria-label="Список">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
-          </button>
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <video class="hero-video" id="hero-video" muted loop playsinline preload="metadata" poster="assets/img/video/apexwolt-film-poster.webp">
+        <source src="assets/video/hero.mp4" type="video/mp4">
+      </video>
+      <div class="hero-wash" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <p class="eyebrow">B2B-платформа APEXWOLT</p>
+        <h1 id="hero-title">Инструмент<br><em>для вашего бизнеса.</em></h1>
+        <p class="hero-lead">Электроинструмент, сварочное оборудование, оснастка и крепёж пяти брендов в одном контуре закупки. МРЦ и наличие — открыто, персональные условия — после входа.</p>
+        <div class="hero-actions">
+          <a class="button button-dark" href="catalog.html">Открыть каталог</a>
+          <a class="button button-glass" href="about.html">О компании</a>
         </div>
+      </div>
+      <button type="button" class="hero-toggle icon-btn" id="hero-toggle" aria-label="Пауза видео" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>
+      </button>
+      <dl class="hero-stats glass" id="hero-stats"></dl>
+    </section>
+
+    <section class="block" aria-labelledby="dirs-title">
+      <div class="block-head">
+        <h2 id="dirs-title">Направления каталога</h2>
+        <a class="link" href="catalog.html">Весь каталог <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <div class="dir-grid" id="dir-grid"></div>
+    </section>
+
+    <section class="block" id="new" aria-labelledby="new-title">
+      <div class="block-head">
+        <h2 id="new-title">Новинки</h2>
+        <div class="carousel-nav">
+          <a class="link" href="category.html?sort=new">Все новинки</a>
+          <button type="button" class="icon-btn" data-scroll="-1" aria-label="Предыдущие новинки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+          <button type="button" class="icon-btn" data-scroll="1" aria-label="Следующие новинки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+        </div>
+      </div>
+      <div class="carousel" id="new-track" tabindex="0" aria-label="Новинки, прокручивается по горизонтали"></div>
+    </section>
+
+    <section class="block perks" aria-label="Почему APEXWOLT">
+      <article><span>01</span><h3>Единая платформа</h3><p>Инструмент, оснастка и комплектующие в одном контуре закупки.</p></article>
+      <article><span>02</span><h3>Актуальные данные</h3><p>Остатки, сроки и условия видны до отправки заявки.</p></article>
+      <article><span>03</span><h3>Проверенная комплектация</h3><p>Подбираем совместимые решения под вашу задачу.</p></article>
+      <article><span>04</span><h3>Поддержка поставки</h3><p>Менеджер подтверждает состав, документы и дату отгрузки.</p></article>
+    </section>
+
+    <section class="block" aria-labelledby="stock-title">
+      <div class="block-head">
+        <h2 id="stock-title">В наличии на складе</h2>
+        <a class="link" href="category.html?stock=1">Все товары в наличии <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Направление" id="stock-tabs"></div>
+      <div class="products is-grid" id="stock-grid"></div>
+    </section>
+
+    <section class="block" aria-labelledby="brands-title">
+      <div class="block-head"><h2 id="brands-title">Бренды</h2></div>
+      <div class="brand-grid" id="brand-grid"></div>
+    </section>
+
+    <section class="block about-teaser" aria-labelledby="about-title">
+      <div class="about-copy">
+        <p class="eyebrow">О компании</p>
+        <h2 id="about-title">Вкладываемся в продажи вместе.</h2>
+        <p>Помогаем не только заказать товар, но и представить его покупателю, обучить команду и поддерживать продажи после первой поставки. Показываем производственную базу и этапы выпуска — с фото и видео реальных площадок.</p>
+        <ul class="ticks">
+          <li>Продукция для демонстрационного стенда — бесплатно</li>
+          <li>Закреплённый менеджер по ассортименту и поставкам</li>
+          <li>POS-материалы и мотивация команды партнёра</li>
+        </ul>
+        <a class="button button-dark" href="about.html">Подробнее о компании</a>
+      </div>
+      <div class="about-photos">
+        <figure><img src="assets/img/about/factory-overview.webp" alt="Общий план производства" loading="lazy"><figcaption>Производство</figcaption></figure>
+        <figure><img src="assets/img/about/factory-line.webp" alt="Сборочная линия" loading="lazy"><figcaption>Сборочная линия</figcaption></figure>
+        <figure><img src="assets/img/about/factory-quality.webp" alt="Контроль качества готовой продукции" loading="lazy"><figcaption>Контроль качества</figcaption></figure>
       </div>
     </section>
 
-    <p class="result-count" id="result-count" aria-live="polite"></p>
-    <div class="products is-grid" id="products"></div>
-
-    <div class="paging" id="paging">
-      <button type="button" class="button button-ghost" id="load-more">Показать ещё</button>
-      <nav class="pagination" id="pagination" aria-label="Страницы"></nav>
-    </div>
-
-    <section class="about-line" aria-labelledby="about-title">
-      <h2 id="about-title">Как выбрать аппарат</h2>
-      <div class="about-grid">
-        <article>
-          <h3>Инвертор MMA</h3>
-          <p>Ручная дуговая сварка покрытым электродом. Компактно, от бытовой сети 140–240 В, подходит для каркасов, заборов и ремонта на выезде.</p>
-        </article>
-        <article>
-          <h3>Полуавтомат MIG/MAG</h3>
-          <p>Сварка проволокой в защитном газе или порошковой FLUX без газа. Тонкий металл, длинные аккуратные швы, кузовной ремонт.</p>
-        </article>
-        <article>
-          <h3>Для партнёров</h3>
-          <p>МРЦ и наличие видны всем. Персональная цена, маржинальность и условия поставки открываются после входа в кабинет организации.</p>
-        </article>
+    <section class="block" id="video" aria-labelledby="video-title">
+      <div class="block-head">
+        <h2 id="video-title">Инструмент — в реальной работе</h2>
+        <p class="block-lead">Обзоры, тесты и инструкции помогают оценить инструмент до формирования заявки.</p>
       </div>
+      <div data-video-block></div>
     </section>
   </main>
 
@@ -91,6 +108,6 @@
   <script src="assets/js/data.js"></script>
   <script src="assets/js/store.js"></script>
   <script src="assets/js/ui.js"></script>
-  <script src="assets/js/catalog.js"></script>
+  <script src="assets/js/home.js"></script>
 </body>
 </html>

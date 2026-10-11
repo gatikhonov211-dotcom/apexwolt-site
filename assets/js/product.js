@@ -1,54 +1,56 @@
-/* Карточка товара: фото, ключевые параметры, МРЦ, закрытая цена партнёра, полный список характеристик, похожие модели. */
+/* Карточка товара: фото, ключевые характеристики, МРЦ, закрытая цена партнёра, описание,
+   полный список характеристик, похожие товары из той же категории и направления. */
 (function () {
-  const { products } = window.APEX_DATA;
-  const { esc, money, icon, summary, stockLabel, productCard } = window.ApexUI;
+  const { products, categories, novelties } = window.APEX_DATA;
+  const { esc, money, icon, summary, specPair, stockLabel, productCard, imageOf, sectionOf } = window.ApexUI;
   const store = window.ApexStore;
   const root = document.getElementById('product-root');
-  const id = new URLSearchParams(location.search).get('id');
-  const p = store.byId(id);
+  const crumbs = document.getElementById('breadcrumbs');
+  const p = store.byId(new URLSearchParams(location.search).get('id'));
 
   if (!p) {
     document.title = 'Товар не найден — APEXWOLT';
-    document.getElementById('crumb-name').textContent = 'Не найдено';
-    root.innerHTML = `<div class="empty empty-wide"><p class="empty-title">Такой модели нет</p>
-      <p>Возможно, ссылка устарела. Вся линейка сварочного оборудования APEXWOLT — в каталоге.</p>
-      <a class="button button-dark" href="index.html">В каталог</a></div>`;
+    crumbs.insertAdjacentHTML('beforeend', '<span aria-hidden="true">/</span><span aria-current="page">Не найдено</span>');
+    root.innerHTML = `<div class="empty empty-wide"><p class="empty-title">Такого товара нет</p>
+      <p>Возможно, ссылка устарела или позиция снята с продажи. Найдите похожие товары в каталоге.</p>
+      <a class="button button-dark" href="catalog.html">В каталог</a></div>`;
     return;
   }
 
+  const cat = categories[p.category];
+  const section = sectionOf(p);
   document.title = `${p.name} — артикул ${p.sku} | APEXWOLT`;
-  document.querySelector('meta[name="description"]').content = `${p.name}: ${summary(p)}. МРЦ ${money(p.price)}.`;
-  document.getElementById('crumb-name').textContent = p.name;
+  document.querySelector('meta[name="description"]').content = `${p.name}. ${summary(p)}.${p.price ? ` МРЦ ${money(p.price)}.` : ''}`;
+  crumbs.insertAdjacentHTML('beforeend', `
+    <span aria-hidden="true">/</span><a href="category.html?section=${section.key}">${esc(section.title)}</a>
+    <span aria-hidden="true">/</span><a href="category.html?category=${p.category}">${esc(cat.title)}</a>
+    <span aria-hidden="true">/</span><span aria-current="page">${esc(p.name)}</span>`);
 
-  const keyFacts = [
-    ['Тип сварки', p.processes.join(', ')],
-    ['Сварочный ток', `${p.current[0]}–${p.current[1]} А`],
-    ['Сеть', `${p.mains[0]}–${p.mains[1]} В`],
-    ['ПВ', p.duty],
-    p.wire.length ? ['Проволока', `${p.wire.join(' / ').replace(/\./g, ',')} мм`] : ['Электрод', `до ${p.electrode} мм`],
-    ['Масса', p.weight ? `${String(p.weight).replace('.', ',')} кг` : '—']
-  ];
-  const splitSpec = s => { const i = s.indexOf(':'); return i > 0 ? [s.slice(0, i), s.slice(i + 1).trim()] : [s, '']; };
-  const related = products.filter(x => x.id !== p.id).sort((a, b) => (b.kind === p.kind) - (a.kind === p.kind) || Math.abs(a.price - p.price) - Math.abs(b.price - p.price)).slice(0, 3);
+  const pairs = p.specs.map(specPair);
+  const keyFacts = pairs.filter(([k, v]) => k && v.length <= 40).slice(0, 6);
+  const related = products
+    .filter(x => x.id !== p.id && sectionOf(x).key === section.key)
+    .sort((a, b) => (b.category === p.category) - (a.category === p.category) || (!!b.image - !!a.image) || Math.abs(a.price - p.price) - Math.abs(b.price - p.price))
+    .slice(0, 4);
 
   const render = () => {
     const fav = store.isFavorite(p.id), cmp = store.inCompare(p.id), qty = store.qty(p.id);
     root.innerHTML = `
     <article class="pdp" data-id="${esc(p.id)}">
-      <div class="pdp-media">
-        <img src="${esc(p.image)}" alt="${esc(p.name)}" width="900" height="900">
-        <div class="card-flags"><span class="flag">МРЦ</span></div>
+      <div class="pdp-media${p.image ? '' : ' is-placeholder'}">
+        <img src="${esc(imageOf(p))}" alt="${p.image ? esc(p.name) : 'Фото товара скоро появится'}" width="900" height="900">
+        <div class="card-flags">${novelties.includes(p.id) ? '<span class="flag flag-new">Новинка</span>' : ''}${p.price ? '<span class="flag">МРЦ</span>' : ''}</div>
+        ${p.image ? '' : '<p class="placeholder-note">Фото товара скоро появится</p>'}
       </div>
       <div class="pdp-info">
-        <p class="pdp-kicker">${p.kind === 'mig' ? 'Полуавтомат MIG/MAG' : 'Инвертор MMA'} · ${esc(p.brand)}</p>
+        <p class="pdp-kicker">${esc(cat.title)}${p.brand ? ` · ${esc(p.brand)}` : ''}</p>
         <h1>${esc(p.name)}</h1>
         <p class="card-sku">Артикул: ${esc(p.sku)}</p>
         ${stockLabel(p)}
-        <dl class="facts">${keyFacts.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+        ${keyFacts.length ? `<dl class="facts">${keyFacts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
         <div class="pdp-buy glass">
           <div class="price price-lg">
-            <span class="muted">МРЦ</span>
-            <strong>${money(p.price)}</strong>
+            ${p.price ? `<span class="muted">МРЦ</span><strong>${money(p.price)}</strong>` : '<strong class="price-ask">Цена по запросу</strong><span class="muted">Менеджер пришлёт условия в ответ на заявку</span>'}
           </div>
           <div class="locked">
             ${icon.lock}
@@ -73,34 +75,36 @@
       </div>
     </article>
 
-    <section class="pdp-section" aria-labelledby="desc-title">
+    ${p.description ? `<section class="pdp-section" aria-labelledby="desc-title">
       <h2 id="desc-title">Описание</h2>
       <p class="pdp-desc">${esc(p.description)}</p>
-    </section>
+    </section>` : ''}
 
     <section class="pdp-section" aria-labelledby="specs-title">
       <h2 id="specs-title">Характеристики</h2>
-      <table class="specs"><tbody>${p.specs.map(s => { const [k, v] = splitSpec(s); return `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`; }).join('')}</tbody></table>
+      ${pairs.length ? `<table class="specs"><tbody>${pairs.map(([k, v]) => k
+        ? `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`
+        : `<tr><td colspan="2">${esc(v)}</td></tr>`).join('')}</tbody></table>`
+        : '<p class="muted">Характеристики уточняются — менеджер пришлёт их по запросу.</p>'}
     </section>
 
-    <section class="pdp-section" aria-labelledby="rel-title">
-      <h2 id="rel-title">Похожие модели</h2>
-      <div class="products is-grid">${related.map(productCard).join('')}</div>
-    </section>`;
+    ${related.length ? `<section class="pdp-section" aria-labelledby="rel-title">
+      <div class="block-head"><h2 id="rel-title">Похожие товары</h2><a class="link" href="category.html?category=${p.category}">Вся категория ${icon.arrow}</a></div>
+      <div class="products is-grid">${related.map(x => productCard(x)).join('')}</div>
+    </section>` : ''}`;
   };
 
   root.addEventListener('click', e => {
     const step = e.target.closest('[data-step]');
     if (step) store.setQty(p.id, store.qty(p.id) + Number(step.dataset.step));
   });
+  // Карточки «Похожих» обновляет ui.js; главный блок перерисовываем сами и возвращаем фокус.
   store.onChange(() => {
     const focused = document.activeElement;
-    const key = focused && (focused.dataset.step || focused.dataset.act);
-    const inRelated = focused && focused.closest('.pdp-section .card');
-    const relId = inRelated && inRelated.dataset.id;
+    if (!focused || !focused.closest('.pdp')) { render(); return; }
+    const key = focused.dataset.step || focused.dataset.act;
     render();
-    const again = relId ? root.querySelector(`.card[data-id="${CSS.escape(relId)}"] [data-act="${focused.dataset.act}"]`)
-      : key ? root.querySelector(`.pdp [data-step="${key}"], .pdp [data-act="${key}"]`) || root.querySelector('.pdp [data-step="1"], .pdp [data-act="req"]') : null;
+    const again = root.querySelector(`.pdp [data-step="${key}"], .pdp [data-act="${key}"]`) || root.querySelector('.pdp [data-step="1"], .pdp [data-act="req"]');
     if (again) again.focus();
   });
   render();
