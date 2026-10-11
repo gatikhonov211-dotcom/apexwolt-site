@@ -39,7 +39,10 @@ node tools/build-data.mjs ../apexwolt-b2b/dist
 ```
 
 - Источник товаров — `dist/catalog.data.js` (`categoryData`, `sectionData`).
-- Список новинок — `NOVELTY_IDS` из `dist/catalog-shop.js`.
+- Список новинок — `NOVELTY_IDS` из `dist/catalog-shop.js`, на сайте показываются только позиции
+  направления «Сварочное оборудование» (`NOVELTY_SECTION` в `tools/build-data.mjs`).
+- Сварочные аппараты разбиты на подразделы «Сварочные инверторы» (MMA) и «Сварочные полуавтоматы»
+  (MIG) — правило `SPLITS` в `tools/build-data.mjs`; исходный каталог не меняется.
 - Товары без фото показываются с фирменной заглушкой `assets/img/category-placeholder.svg`.
 - Фильтры «Выбор по параметрам» строятся автоматически из характеристик вида «Параметр: значение».
 

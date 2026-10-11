@@ -58,7 +58,33 @@ for (const [key, c] of Object.entries(categoryData)) {
   }
 }
 
-const data = { sections, categories, products, novelties: novelties.filter(id => products.some(p => p.id === id)) };
+// Разбивка категорий на подразделы — только для этого сайта, исходный каталог не меняется.
+const SPLITS = {
+  'svarochnye-apparaty': [
+    { key: 'svarochnye-invertory', title: 'Сварочные инверторы', match: p => /\bMMA\b/.test(p.name) },
+    { key: 'svarochnye-poluavtomaty', title: 'Сварочные полуавтоматы', match: p => /\bMIG\b/.test(p.name) }
+  ]
+};
+for (const [key, parts] of Object.entries(SPLITS)) {
+  const base = categories[key];
+  if (!base) continue;
+  const items = products.filter(p => p.category === key);
+  for (const part of parts) {
+    categories[part.key] = { title: part.title, section: base.section, image: base.image };
+    items.filter(part.match).forEach(p => { p.category = part.key; });
+  }
+  const left = items.filter(p => p.category === key);
+  if (left.length) throw new Error(`${key}: не разнесены по подразделам — ${left.map(p => p.name).join(', ')}`);
+  delete categories[key];
+  const section = sections.find(s => s.key === base.section);
+  section.categories.splice(section.categories.indexOf(key), 1, ...parts.map(p => p.key));
+}
+
+// Новинки на сайте — только сварочное оборудование, в порядке списка NOVELTY_IDS.
+const NOVELTY_SECTION = 'svarochnoe-oborudovanie';
+const inNoveltySection = id => { const p = products.find(x => x.id === id); return p && categories[p.category].section === NOVELTY_SECTION; };
+
+const data = { sections, categories, products, novelties: novelties.filter(inNoveltySection) };
 fs.writeFileSync(path.join(root, 'assets', 'js', 'data.js'),
   `/* Сгенерировано tools/build-data.mjs из каталога APEXWOLT B2B — не редактировать вручную. */\nwindow.APEX_DATA = ${JSON.stringify(data)};\n`);
 console.log(`data.js: ${sections.length} направлений, ${Object.keys(categories).length} категорий, ${products.length} товаров, ${data.novelties.length} новинок, ${[...copied.values()].filter(Boolean).length} фото`);
