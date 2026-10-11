@@ -33,14 +33,35 @@
     .sort((a, b) => (b.category === p.category) - (a.category === p.category) || (!!b.image - !!a.image) || Math.abs(a.price - p.price) - Math.abs(b.price - p.price))
     .slice(0, 4);
 
+  // Галерея: номер текущего фото переживает перерисовку (избранное, количество в заявке).
+  const shots = p.images || [];
+  let shot = 0;
+  const showShot = (i, focusSel) => {
+    shot = (i + shots.length) % shots.length;
+    render();
+    const again = focusSel && root.querySelector(focusSel);
+    if (again) again.focus();
+    const thumb = root.querySelector('.thumb.is-on');
+    if (thumb) thumb.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  };
+
   const render = () => {
     const fav = store.isFavorite(p.id), cmp = store.inCompare(p.id), qty = store.qty(p.id);
     root.innerHTML = `
     <article class="pdp" data-id="${esc(p.id)}">
-      <div class="pdp-media${p.image ? '' : ' is-placeholder'}">
-        <img src="${esc(imageOf(p))}" alt="${p.image ? esc(p.name) : 'Фото товара скоро появится'}" width="900" height="900">
-        <div class="card-flags">${novelties.includes(p.id) ? '<span class="flag flag-new">Новинка</span>' : ''}${p.price ? '<span class="flag">МРЦ</span>' : ''}</div>
-        ${p.image ? '' : '<p class="placeholder-note">Фото товара скоро появится</p>'}
+      <div class="pdp-gallery">
+        <div class="pdp-media${p.image ? '' : ' is-placeholder'}">
+          <img id="pdp-shot" src="${esc(shots.length ? shots[shot] : imageOf(p))}" alt="${p.image ? `${esc(p.name)} — фото ${shot + 1} из ${shots.length}` : 'Фото товара скоро появится'}" width="900" height="900">
+          <div class="card-flags">${novelties.includes(p.id) ? '<span class="flag flag-new">Новинка</span>' : ''}${p.price ? '<span class="flag">МРЦ</span>' : ''}</div>
+          ${p.image ? '' : '<p class="placeholder-note">Фото товара скоро появится</p>'}
+          ${shots.length > 1 ? `
+            <button type="button" class="icon-btn shot-nav is-prev" data-shot-step="-1" aria-label="Предыдущее фото">${icon.left}</button>
+            <button type="button" class="icon-btn shot-nav is-next" data-shot-step="1" aria-label="Следующее фото">${icon.right}</button>
+            <span class="shot-count" aria-hidden="true">${shot + 1} / ${shots.length}</span>` : ''}
+        </div>
+        ${shots.length > 1 ? `<div class="thumbs" role="group" aria-label="Фото товара">${shots.map((s, i) => `
+          <button type="button" class="thumb${i === shot ? ' is-on' : ''}" data-shot="${i}" aria-label="Фото ${i + 1}"${i === shot ? ' aria-current="true"' : ''}><img src="${esc(s)}" alt="" loading="lazy" width="80" height="80"></button>`).join('')}
+        </div>` : ''}
       </div>
       <div class="pdp-info">
         <p class="pdp-kicker">${esc(cat.title)}${p.brand ? ` · ${esc(p.brand)}` : ''}</p>
@@ -94,7 +115,16 @@
     </section>` : ''}`;
   };
 
+  root.addEventListener('keydown', e => {
+    if (shots.length < 2 || !e.target.closest('.pdp-gallery') || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+    e.preventDefault();
+    showShot(shot + (e.key === 'ArrowRight' ? 1 : -1), '.thumb.is-on');
+  });
   root.addEventListener('click', e => {
+    const thumb = e.target.closest('[data-shot]');
+    if (thumb) { showShot(Number(thumb.dataset.shot), `[data-shot="${thumb.dataset.shot}"]`); return; }
+    const nav = e.target.closest('[data-shot-step]');
+    if (nav) { showShot(shot + Number(nav.dataset.shotStep), `[data-shot-step="${nav.dataset.shotStep}"]`); return; }
     const step = e.target.closest('[data-step]');
     if (step) store.setQty(p.id, store.qty(p.id) + Number(step.dataset.step));
   });

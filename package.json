@@ -1,0 +1,12 @@
+{
+  "name": "apexwolt-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "data": "node tools/build-data.mjs",
+    "photos": "node tools/process-photos.mjs"
+  },
+  "devDependencies": {
+    "sharp": "0.33.5"
+  }
+}

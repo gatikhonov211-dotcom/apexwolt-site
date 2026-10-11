@@ -59,6 +59,23 @@ for (const [key, c] of Object.entries(categoryData)) {
   }
 }
 
+// Галереи фото по моделям (tools/photo-map.json + tools/process-photos.mjs). Первое фото — главное.
+const photoMap = JSON.parse(fs.readFileSync(path.join(root, 'tools', 'photo-map.json'), 'utf8'));
+let withGallery = 0;
+for (const m of photoMap.models) {
+  const dir = path.join(root, 'assets', 'img', 'products', m.slug);
+  if (!fs.existsSync(dir)) { console.warn(`нет обработанных фото: ${m.slug}`); continue; }
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.webp')).sort().map(f => `assets/img/products/${m.slug}/${f}`);
+  for (const id of m.ids) {
+    const p = products.find(x => x.id === id);
+    if (!p) { console.warn(`нет товара ${id} для фото ${m.slug}`); continue; }
+    p.images = files;
+    p.image = files[0];
+    withGallery++;
+  }
+}
+for (const p of products) if (!p.images) p.images = p.image ? [p.image] : [];
+
 // Разбивка категорий на подразделы — только для этого сайта, исходный каталог не меняется.
 const SPLITS = {
   'svarochnye-apparaty': [
@@ -88,4 +105,5 @@ const inNoveltySection = id => { const p = products.find(x => x.id === id); retu
 const data = { sections, categories, products, novelties: novelties.filter(inNoveltySection) };
 fs.writeFileSync(path.join(root, 'assets', 'js', 'data.js'),
   `/* Сгенерировано tools/build-data.mjs из каталога APEXWOLT B2B — не редактировать вручную. */\nwindow.APEX_DATA = ${JSON.stringify(data)};\n`);
+console.log(`галереи: ${withGallery} товаров`);
 console.log(`data.js: ${sections.length} направлений, ${Object.keys(categories).length} категорий, ${products.length} товаров, ${data.novelties.length} новинок, ${[...copied.values()].filter(Boolean).length} фото`);
