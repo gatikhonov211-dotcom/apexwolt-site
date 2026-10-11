@@ -596,3 +596,10 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .doc:hover .doc-meta{color:var(--blue)}
 .docs-hint{margin-top:16px}
 @media (max-width:860px){.docs-list{grid-template-columns:1fr}.doc{align-items:flex-start;padding:14px}.doc-meta{display:none}.doc-text small::after{content:" · PDF"}}
+/* карточка: компактное название и воздух до характеристик */
+.card-title{font-size:15px;font-weight:600;line-height:1.32;letter-spacing:-.01em}
+.card-body{gap:6px}
+.card-title+.card-specs{margin-top:8px}
+.card-specs{font-size:12.5px;line-height:1.5;-webkit-line-clamp:4}
+.card.is-compact .card-specs{-webkit-line-clamp:3}
+@media (max-width:860px){.card-title{font-size:13.5px;line-height:1.3}.card-specs{font-size:11.5px;-webkit-line-clamp:5}}

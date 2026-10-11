@@ -38,7 +38,8 @@
 
   // Короткая строка характеристик для карточки: первые значения из спецификации.
   const specPair = s => { const i = s.indexOf(':'); return i > 0 ? [s.slice(0, i).trim(), s.slice(i + 1).trim()] : ['', s.trim()]; };
-  const summary = (p, n = 4) => p.specs.slice(0, n).map(s => specPair(s)[1]).filter(Boolean).join(' · ');
+  // Ключевые характеристики для карточки: до 6 коротких значений в одну строку через точку с разделителем.
+  const summary = (p, n = 6) => p.specs.map(s => specPair(s)).filter(([k, v]) => v && v.length <= 40 && !/^(Гарантия|Комплектация|Страна)/i.test(k)).slice(0, n).map(([, v]) => v).join(' · ');
 
   const stockLabel = p => {
     if (p.stock) return '<span class="stock is-in"><i></i>В наличии</span>';

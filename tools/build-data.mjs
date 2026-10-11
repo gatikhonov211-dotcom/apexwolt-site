@@ -53,7 +53,8 @@ for (const [key, c] of Object.entries(categoryData)) {
       id, sku, name, brand: brand || '', category: key,
       stock: Number(stock) || 0, lead: Number(lead) || 0, price: Number(price) || 0,
       eta: eta || '', description: description || '', specs: specs || [],
-      image: image(img) || categories[key].image
+      // Только собственное фото товара: картинка категории показывает другую модель/комплектацию.
+      image: image(img)
     });
   }
 }
