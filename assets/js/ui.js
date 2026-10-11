@@ -197,7 +197,7 @@
         <a href="tel:+79330238843">+7 (933) 023-88-43</a>
         <a href="mailto:idea.apexwolt@mail.ru">idea.apexwolt@mail.ru</a>
         <span>09:00–20:00 ежедневно</span>
-        <span class="muted">ООО «АПЕКС» · ИНН 3804120303 · ОГРН 1243800003259</span>
+        <span class="muted">ООО «Гранит» · ИНН 3817050540 · ОГРН 1203800007850</span>
       </div>
     </div>
     <p class="footer-bottom">APEXWOLT © ${new Date().getFullYear()} · Дизайн и разработка — <a href="https://t.me/aleks1y_m">LMH Studio</a></p>
