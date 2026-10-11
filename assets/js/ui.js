@@ -119,7 +119,7 @@
   <header class="site-header">
     <div class="topbar">
       <nav aria-label="Разделы сайта">${nav.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}</nav>
-      <a class="topbar-phone" href="tel:+79330238843">+7 (933) 023-88-43</a>
+      <span class="topbar-phones"><a class="topbar-phone" href="tel:+79330238843">+7 (933) 023-88-43</a><a class="topbar-phone" href="tel:+79086671194">+7 (908) 667-11-94</a></span>
     </div>
     <div class="header-inner">
       <a class="brand" href="index.html" aria-label="APEXWOLT — на главную"><img src="assets/img/apexwolt-logo.svg" alt="APEXWOLT" width="158" height="85"></a>
@@ -195,6 +195,7 @@
       <div class="footer-company">
         <h3>Контакты</h3>
         <a href="tel:+79330238843">+7 (933) 023-88-43</a>
+        <a href="tel:+79086671194">+7 (908) 667-11-94</a>
         <a href="mailto:idea.apexwolt@mail.ru">idea.apexwolt@mail.ru</a>
         <span>09:00–20:00 ежедневно</span>
         <span class="muted">ООО «Гранит» · ИНН 3817050540 · ОГРН 1203800007850</span>

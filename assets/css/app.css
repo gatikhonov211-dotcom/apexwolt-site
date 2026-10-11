@@ -579,3 +579,4 @@ input[type=range]{width:100%;accent-color:var(--blue)}
   .perks,.perks-5{grid-template-columns:1fr}
 }
 .card.is-compact .card-specs{-webkit-line-clamp:2}
+.topbar-phones{display:flex;gap:16px}
