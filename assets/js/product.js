@@ -24,7 +24,7 @@
   crumbs.insertAdjacentHTML('beforeend', `
     <span aria-hidden="true">/</span><a href="category.html?section=${section.key}">${esc(section.title)}</a>
     <span aria-hidden="true">/</span><a href="category.html?category=${p.category}">${esc(cat.title)}</a>
-    <span aria-hidden="true">/</span><span aria-current="page">${esc(p.name)}</span>`);
+    <span aria-hidden="true">/</span><span aria-current="page">${esc(p.title)}</span>`);
 
   const pairs = p.specs.map(specPair);
   const keyFacts = pairs.filter(([k, v]) => k && v.length <= 40).slice(0, 6);
@@ -51,7 +51,7 @@
     <article class="pdp" data-id="${esc(p.id)}">
       <div class="pdp-gallery">
         <div class="pdp-media${p.image ? '' : ' is-placeholder'}">
-          <img id="pdp-shot" src="${esc(shots.length ? shots[shot] : imageOf(p))}" alt="${p.image ? `${esc(p.name)} — фото ${shot + 1} из ${shots.length}` : 'Фото товара скоро появится'}" width="900" height="900">
+          <img id="pdp-shot" src="${esc(shots.length ? shots[shot] : imageOf(p))}" alt="${p.image ? `${esc(p.title)} — фото ${shot + 1} из ${shots.length}` : 'Фото товара скоро появится'}" width="900" height="900">
           <div class="card-flags">${novelties.includes(p.id) ? '<span class="flag flag-new">Новинка</span>' : ''}${p.price ? '<span class="flag">МРЦ</span>' : ''}</div>
           ${p.image ? '' : '<p class="placeholder-note">Фото товара скоро появится</p>'}
           ${shots.length > 1 ? `
@@ -65,7 +65,8 @@
       </div>
       <div class="pdp-info">
         <p class="pdp-kicker">${esc(cat.title)}${p.brand ? ` · ${esc(p.brand)}` : ''}</p>
-        <h1>${esc(p.name)}</h1>
+        <h1>${esc(p.title)}</h1>
+        ${p.title !== p.name ? `<p class="pdp-fullname">${esc(p.name)}</p>` : ''}
         <p class="card-sku">Артикул: ${esc(p.sku)}</p>
         ${stockLabel(p)}
         ${keyFacts.length ? `<dl class="facts">${keyFacts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}

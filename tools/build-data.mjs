@@ -76,6 +76,21 @@ for (const m of photoMap.models) {
 }
 for (const p of products) if (!p.images) p.images = p.image ? [p.image] : [];
 
+// Короткое название для карточек: всё до первой «, » (модель вида «ДА-16,8-45» не режется — там нет пробела).
+// Комплектация из хвоста («2 АКБ 2,0 Ач + ЗУ», «кейс», «без АКБ и ЗУ») — отдельной строкой, чтобы не путать варианты.
+// Двуязычные названия «… / …» и названия, которые после сокращения совпали бы с другими, остаются полными.
+const shortOf = name => {
+  const i = name.indexOf(', ');
+  return i > 0 && !name.includes(' / ') ? name.slice(0, i) : name;
+};
+const shortCount = {};
+products.forEach(p => { const s = shortOf(p.name); shortCount[s] = (shortCount[s] || 0) + 1; });
+for (const p of products) {
+  const s = shortOf(p.name);
+  p.title = shortCount[s] > 1 ? p.name : s;
+  p.kit = p.title === p.name ? '' : p.name.slice(s.length + 2).split(', ').filter(part => /АКБ|ЗУ|кейс/i.test(part)).join(', ');
+}
+
 // Разбивка категорий на подразделы — только для этого сайта, исходный каталог не меняется.
 const SPLITS = {
   'svarochnye-apparaty': [

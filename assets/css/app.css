@@ -616,3 +616,6 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .thumb:hover{border-color:rgba(16,17,20,.25)}
 .thumb.is-on{border-color:var(--blue)}
 @media (max-width:860px){.thumb{width:58px;height:58px}.shot-nav{width:32px;height:32px}.shot-nav.is-prev{left:8px}.shot-nav.is-next{right:8px}}
+.card-kit{margin:-2px 0 0;color:var(--ink-2);font-size:12px;font-weight:500}
+.mini-info small+small{display:block}
+.pdp-fullname{margin:-2px 0 2px;color:var(--muted);font-size:14px;line-height:1.45}

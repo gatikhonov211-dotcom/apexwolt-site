@@ -64,7 +64,8 @@
       </div>
       <div class="card-body">
         ${p.brand ? `<p class="card-brand">${esc(p.brand)}</p>` : ''}
-        <h3 class="card-title"><a href="${productUrl(p)}">${esc(p.name)}</a></h3>
+        <h3 class="card-title"><a href="${productUrl(p)}" title="${esc(p.name)}">${esc(p.title)}</a></h3>
+        ${p.kit ? `<p class="card-kit">${esc(p.kit)}</p>` : ''}
         <p class="card-specs">${esc(summary(p))}</p>
         <p class="card-sku">Артикул: ${esc(p.sku)}</p>
         ${stockLabel(p)}
@@ -315,7 +316,7 @@
     const cats = findCategories(q);
     searchResults.innerHTML = (cats.length ? `<p class="search-group">Категории</p>${cats.map(([k, c]) => `<a role="option" class="search-cat" href="category.html?category=${k}">${esc(c.title)}<small>${esc(sections.find(s => s.key === c.section).title)}</small></a>`).join('')}` : '')
       + (found.length
-        ? `<p class="search-group">Товары · ${found.length}</p>${found.slice(0, 6).map(p => `<a role="option" href="${productUrl(p)}"><img src="${esc(imageOf(p))}" alt=""><span><b>${esc(p.name)}</b><small>Артикул ${esc(p.sku)}${p.price ? ` · ${money(p.price)}` : ''}</small></span></a>`).join('')}
+        ? `<p class="search-group">Товары · ${found.length}</p>${found.slice(0, 6).map(p => `<a role="option" href="${productUrl(p)}"><img src="${esc(imageOf(p))}" alt=""><span><b>${esc(p.title)}</b><small>Артикул ${esc(p.sku)}${p.price ? ` · ${money(p.price)}` : ''}</small></span></a>`).join('')}
            ${found.length > 6 ? `<a role="option" class="search-all" href="category.html?q=${encodeURIComponent(q)}">Все результаты (${found.length}) ${icon.arrow}</a>` : ''}`
         : `<p class="search-empty">Ничего не нашлось по запросу «${esc(q)}». Попробуйте артикул или название категории.</p>`);
     searchResults.hidden = false;
@@ -358,7 +359,7 @@
     <li class="mini" data-id="${esc(p.id)}">
       <a href="${productUrl(p)}"><img src="${esc(imageOf(p))}" alt=""></a>
       <div class="mini-info">
-        <a href="${productUrl(p)}"><b>${esc(p.name)}</b></a>
+        <a href="${productUrl(p)}"><b>${esc(p.title)}</b></a>${p.kit ? `<small>${esc(p.kit)}</small>` : ''}
         <small>Артикул ${esc(p.sku)}${p.price ? ` · МРЦ ${money(p.price)}` : ' · цена по запросу'}</small>
         ${extra}
       </div>
@@ -393,7 +394,7 @@
       const rows = compareRows(list);
       return `<h2 id="drawer-title">Сравнение <span class="muted">${list.length} из ${store.COMPARE_LIMIT}</span></h2>
         <div class="compare-scroll"><table class="compare">
-          <thead><tr><th scope="col"><span class="visually-hidden">Параметр</span></th>${list.map(p => `<th scope="col" data-id="${esc(p.id)}"><img src="${esc(imageOf(p))}" alt=""><a href="${productUrl(p)}">${esc(p.name)}</a><button type="button" class="link muted" data-act="cmp">Убрать</button></th>`).join('')}</tr></thead>
+          <thead><tr><th scope="col"><span class="visually-hidden">Параметр</span></th>${list.map(p => `<th scope="col" data-id="${esc(p.id)}"><img src="${esc(imageOf(p))}" alt=""><a href="${productUrl(p)}">${esc(p.title)}</a><button type="button" class="link muted" data-act="cmp">Убрать</button></th>`).join('')}</tr></thead>
           <tbody>${rows.map(([label, vals]) => `<tr class="${list.length > 1 && new Set(vals).size > 1 ? 'is-diff' : ''}"><th scope="row">${esc(label)}</th>${vals.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody>
         </table></div>
         <p class="hint">Отличающиеся параметры подсвечены. Показаны характеристики, общие хотя бы для двух товаров.</p>
@@ -542,7 +543,7 @@
       const r = store.toggleCompare(id);
       toast(r === null ? `В сравнении уже ${store.COMPARE_LIMIT} товара — уберите один` : r ? 'Добавлено к сравнению' : 'Убрано из сравнения');
     }
-    if (btn.dataset.act === 'req') { store.addToRequest(id); toast(`${p.name} — в заявке`); }
+    if (btn.dataset.act === 'req') { store.addToRequest(id); toast(`${p.title} — в заявке`); }
   });
 
   /* ---------- подписка ---------- */
