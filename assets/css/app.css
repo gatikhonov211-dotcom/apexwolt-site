@@ -580,3 +580,19 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 }
 .card.is-compact .card-specs{-webkit-line-clamp:2}
 .topbar-phones{display:flex;gap:16px}
+/* документы */
+.docs-group+.docs-group{margin-top:26px}
+.docs-group h3{display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:17px;letter-spacing:-.02em}
+.docs-group h3 span{display:grid;place-items:center;min-width:24px;height:24px;padding:0 7px;border-radius:99px;background:var(--blue-soft);color:var(--blue);font-size:12px}
+.docs-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0;padding:0;list-style:none}
+.doc{display:flex;align-items:center;gap:14px;height:100%;padding:16px 18px;border:1px solid var(--line-2);border-radius:var(--r-md);background:#fff;transition:border-color .2s,transform .2s,box-shadow .2s}
+.doc:hover{border-color:rgba(47,99,255,.35);transform:translateY(-2px);box-shadow:var(--shadow)}
+.doc-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:10px;background:var(--blue-soft);color:var(--blue)}
+.doc-text{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.doc-text b{font-size:15px;line-height:1.3}
+.doc-text small{color:var(--muted);font-size:13px;line-height:1.4}
+.doc-meta{display:inline-flex;align-items:center;gap:5px;flex:none;color:var(--muted);font-size:12px;font-weight:600;white-space:nowrap}
+.doc-meta svg{width:14px;height:14px}
+.doc:hover .doc-meta{color:var(--blue)}
+.docs-hint{margin-top:16px}
+@media (max-width:860px){.docs-list{grid-template-columns:1fr}.doc{align-items:flex-start;padding:14px}.doc-meta{display:none}.doc-text small::after{content:" · PDF"}}

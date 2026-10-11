@@ -89,6 +89,37 @@
     ['VK Видео', 'https://vk.ru/club235673348'],
     ['Rutube', 'https://rutube.ru/channel/75298551/videos/']
   ];
+  /* ---------- документы: декларации и сертификаты соответствия ---------- */
+  // Файлы — из папки SUMO\Сертфикация\Сертификаты; номера сверены по сканам.
+  const documents = [
+    { group: 'Декларации о соответствии', items: [
+      { title: 'Аккумуляторный ручной инструмент с зарядными устройствами', number: 'ЕАЭС N RU Д-CN.РА04.В.80058/26', note: 'ТР ЕАЭС 037/2016 · действует до 03.06.2031', file: 'declaration-eaes-akb-instrument.pdf', size: '91 КБ' },
+      { title: 'Аккумуляторы и аккумуляторные батареи литиевой системы', number: 'РОСС RU Д-CN.РА01.В.17955/26', note: 'Единый перечень продукции РФ · действует до 01.06.2031', file: 'declaration-akkumulyatory.pdf', size: '93 КБ' }
+    ] },
+    { group: 'Сертификаты соответствия ЕАЭС', items: [
+      { title: 'Зарядные устройства', number: 'ЕАЭС KG 417/041.CN.02.01439', file: 'cert-01-zaryadnye-ustroystva.pdf', size: '1,4 МБ' },
+      { title: 'Сетевой инструмент: перфораторы, лобзики, УШМ', number: 'ЕАЭС KG 417/041.CN.02.01441', file: 'cert-02-setevoy-instrument.pdf', size: '10 МБ' },
+      { title: 'Технические фены сетевые', number: 'ЕАЭС KG 417/041.CN.02.01443', file: 'cert-03-setevye-feny.pdf', size: '6,7 МБ' },
+      { title: 'Аккумуляторный инструмент: перфораторы, реноваторы, УШМ, краскопульты, винтоверты, гайковерты, шуруповерты', number: 'ЕАЭС KG 417/041.CN.02.01406', file: 'cert-04-akkumulyatornyy-instrument.pdf', size: '1,9 МБ' },
+      { title: 'Аккумуляторные мойки', number: 'ЕАЭС KG 417/041.CN.02.01589', file: 'cert-05-moyki-akb.pdf', size: '530 КБ' },
+      { title: 'Пилы сетевые', number: 'ЕАЭС KG 417/041.CN.02.01618', file: 'cert-06-pily-setevye.pdf', size: '6,6 МБ' },
+      { title: 'Пилы и мини-пилы аккумуляторные', number: 'ЕАЭС KG 417/041.CN.02.01609', file: 'cert-07-pily-akb.pdf', size: '9,3 МБ' },
+      { title: 'Аккумуляторные триммеры, секаторы, воздуходувки', number: 'ЕАЭС KG 417/041.CN.02.01616', file: 'cert-08-sadovaya-tehnika-akb.pdf', size: '12 МБ' }
+    ] }
+  ];
+  const docIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>';
+  const docsBlock = () => documents.map(g => `
+    <div class="docs-group">
+      <h3>${g.group} <span>${g.items.length}</span></h3>
+      <ul class="docs-list">${g.items.map(d => `
+        <li><a class="doc" href="assets/docs/${d.file}" target="_blank" rel="noopener" aria-label="${esc(d.title)}, № ${esc(d.number)}, PDF ${d.size}, откроется в новой вкладке">
+          <span class="doc-icon">${docIcon}</span>
+          <span class="doc-text"><b>${esc(d.title)}</b><small>№ ${esc(d.number)}${d.note ? ` · ${esc(d.note)}` : ''}</small></span>
+          <span class="doc-meta">PDF · ${d.size}${icon.external}</span>
+        </a></li>`).join('')}
+      </ul>
+    </div>`).join('') + '<p class="hint docs-hint">Документы оформлены на импортёра продукции. Оригиналы и другие разрешительные документы предоставит менеджер по запросу.</p>';
+
   const videoBlock = () => `
     <div class="video-grid">
       ${videos.map((v, i) => {
@@ -182,6 +213,7 @@
         <a href="about.html#production">Производство</a>
         <a href="about.html#partners">Партнёрам</a>
         <a href="about.html#video">Видеообзоры</a>
+        <a href="about.html#documents">Сертификаты и декларации</a>
         <a href="${MAIN_SITE}/faq.html">Вопросы и ответы</a>
       </div>
       <div>
@@ -558,5 +590,6 @@
   });
   syncCounts();
 
-  window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, reduceMotion, PLACEHOLDER };
+  window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, docsBlock, reduceMotion, PLACEHOLDER };
+  document.querySelectorAll('[data-docs-block]').forEach(el => { el.outerHTML = docsBlock(); });
 })();
