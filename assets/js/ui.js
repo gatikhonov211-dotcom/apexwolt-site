@@ -215,11 +215,11 @@
         <a href="about.html#production">Производство</a>
         <a href="about.html#partners">Партнёрам</a>
         <a href="about.html#video">Видеообзоры</a>
-        <a href="about.html#documents">Сертификаты и декларации</a>
         <a href="${MAIN_SITE}/faq.html">Вопросы и ответы</a>
       </div>
       <div>
         <h3>Документы</h3>
+        <a href="documents.html">Сертификаты и декларации</a>
         <a href="${MAIN_SITE}/privacy.html">Политика конфиденциальности</a>
         <a href="${MAIN_SITE}/platform-rules.html">Правила платформы</a>
         <a href="${MAIN_SITE}/request-terms.html">Условия заявки</a>

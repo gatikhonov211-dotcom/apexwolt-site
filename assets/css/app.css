@@ -619,3 +619,10 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .card-kit{margin:-2px 0 0;color:var(--ink-2);font-size:12px;font-weight:500}
 .mini-info small+small{display:block}
 .pdp-fullname{margin:-2px 0 2px;color:var(--muted);font-size:14px;line-height:1.45}
+.docs-page{padding-top:8px}
+.docs-teaser{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px;border:1px solid var(--line-2);border-radius:var(--r-lg);background:#fff;transition:border-color .2s,transform .2s}
+.docs-teaser:hover{border-color:rgba(47,99,255,.35);transform:translateY(-2px)}
+.docs-teaser span{display:flex;flex-direction:column;gap:4px}
+.docs-teaser b{font-size:18px;letter-spacing:-.02em}
+.docs-teaser small{color:var(--muted);font-size:14px}
+.docs-teaser svg{color:var(--blue)}
