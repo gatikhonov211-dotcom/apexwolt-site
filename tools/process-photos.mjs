@@ -32,12 +32,21 @@ for (const m of models.filter(x => !only || x.source === only)) {
   const names = fs.readdirSync(dir).filter(n => /\.(jpe?g|png|webp)$/i.test(n)).sort(order);
   // lead в photo-map.json — какой снимок поставить главным (например, сам прибор вместо коробки).
   if (m.lead && names.includes(m.lead)) names.unshift(...names.splice(names.indexOf(m.lead), 1));
-  let n = 0;
+  let unique = [];
   for (const name of names) {
     const buf = fs.readFileSync(path.join(dir, name));
     const hash = crypto.createHash('sha1').update(buf).digest('hex');
     if (seen.has(hash)) continue;
     seen.add(hash);
+    unique.push(buf);
+  }
+  // order в photo-map.json — порядок снимков (номера по умолчанию, с 1): сначала товар, в конце упаковка.
+  if (m.order) {
+    if (m.order.length !== unique.length || new Set(m.order).size !== unique.length) throw new Error(`${m.slug}: order должен перечислить все ${unique.length} фото`);
+    unique = m.order.map(i => unique[i - 1]);
+  }
+  let n = 0;
+  for (const buf of unique) {
     n++;
     // Фото ставятся как есть (без осветления фона): автоматическое осветление портило белые корпуса.
     await sharp(buf).rotate().flatten({ background: '#ffffff' })
