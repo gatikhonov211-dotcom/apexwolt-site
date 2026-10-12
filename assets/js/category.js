@@ -114,7 +114,7 @@
     el('category-title').textContent = title;
     document.title = `${title} — каталог APEXWOLT для партнёров`;
     el('category-lead').textContent = section ? section.description
-      : 'Все направления APEXWOLT, VOLTEXA, SUMO, PROPEL и APEX–КРЕП. МРЦ и наличие — открыто, партнёрские условия — после входа.';
+      : 'Все направления APEXWOLT, VOLTEXA, SUMO, PROPEL и APEX–КРЕП.';
     const crumbs = [['index.html', 'Главная'], ['catalog.html', 'Каталог']];
     if (section) crumbs.push([cat ? `category.html?section=${section.key}` : '', section.title]);
     if (cat) crumbs.push(['', cat.title]);
