@@ -18,6 +18,9 @@
   const productUrl = p => `product.html?id=${encodeURIComponent(p.id)}`;
   const imageOf = p => p.image || PLACEHOLDER;
   const novelties = new Set(window.APEX_DATA.novelties);
+  // Вид цены: у VOLTEXA — рекомендованная розничная (РРЦ), у остальных брендов — минимальная (МРЦ).
+  const priceKind = p => p.brand === 'VOLTEXA' ? 'РРЦ' : 'МРЦ';
+  const priceKinds = list => [...new Set(list.map(priceKind))].join(' / ');
 
   const icon = {
     heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
@@ -57,7 +60,7 @@
       <a class="card-media${p.image ? '' : ' is-placeholder'}" href="${productUrl(p)}" tabindex="-1" aria-hidden="true">
         <img src="${esc(imageOf(p))}" alt="" loading="lazy" decoding="async" width="600" height="600">
       </a>
-      <div class="card-flags">${novelties.has(p.id) ? '<span class="flag flag-new">Новинка</span>' : ''}${p.price ? '<span class="flag">МРЦ</span>' : ''}</div>
+      <div class="card-flags">${novelties.has(p.id) ? '<span class="flag flag-new">Новинка</span>' : ''}${p.price ? `<span class="flag">${priceKind(p)}</span>` : ''}</div>
       <div class="card-actions">
         <button type="button" class="icon-btn${fav ? ' is-on' : ''}" data-act="fav" aria-pressed="${fav}" aria-label="${fav ? 'Убрать из избранного' : 'В избранное'}">${icon.heart}</button>
         <button type="button" class="icon-btn${cmp ? ' is-on' : ''}" data-act="cmp" aria-pressed="${cmp}" aria-label="${cmp ? 'Убрать из сравнения' : 'Добавить к сравнению'}">${icon.compare}</button>
@@ -360,7 +363,7 @@
       <a href="${productUrl(p)}"><img src="${esc(imageOf(p))}" alt=""></a>
       <div class="mini-info">
         <a href="${productUrl(p)}"><b>${esc(p.title)}</b></a>${p.kit ? `<small>${esc(p.kit)}</small>` : ''}
-        <small>Артикул ${esc(p.sku)}${p.price ? ` · МРЦ ${money(p.price)}` : ' · цена по запросу'}</small>
+        <small>Артикул ${esc(p.sku)}${p.price ? ` · ${priceKind(p)} ${money(p.price)}` : ' · цена по запросу'}</small>
         ${extra}
       </div>
     </li>`;
@@ -373,7 +376,7 @@
     maps.forEach(m => m.forEach((_, k) => { if (!keys.includes(k)) keys.push(k); }));
     const shared = keys.filter(k => maps.filter(m => m.has(k)).length >= Math.min(2, list.length));
     return [
-      ['МРЦ', list.map(p => p.price ? money(p.price) : 'По запросу')],
+      [priceKinds(list), list.map(p => p.price ? money(p.price) : 'По запросу')],
       ['Наличие', list.map(p => p.stock ? 'В наличии' : 'Под заказ')],
       ['Бренд', list.map(p => p.brand || '—')],
       ['Категория', list.map(p => categories[p.category].title)],
@@ -412,7 +415,7 @@
             <input type="number" inputmode="numeric" min="0" max="9999" value="${r.qty}" data-qty-input aria-label="Количество, шт.">
             <button type="button" data-qty="1" aria-label="Больше">+</button>
           </div>`)).join('')}</ul>
-        <p class="total"><span>Ориентир по МРЦ${ask ? '*' : ''}</span><b>${money(total)}</b></p>
+        <p class="total"><span>Ориентир по ${priceKinds(rows.map(r => store.byId(r.id)))}${ask ? '*' : ''}</span><b>${money(total)}</b></p>
         <p class="hint">${ask ? '* Без позиций с ценой по запросу. ' : ''}Итоговые цены и сроки подтвердит менеджер. Отправка заявки не является договором или оплатой.</p>
         <form class="request-form" id="request-form" novalidate>
           <div class="field"><label for="rq-company">Организация</label><input id="rq-company" name="company" autocomplete="organization" required></div>
@@ -592,6 +595,6 @@
   });
   syncCounts();
 
-  window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, docsBlock, reduceMotion, PLACEHOLDER };
+  window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, docsBlock, priceKind, priceKinds, reduceMotion, PLACEHOLDER };
   document.querySelectorAll('[data-docs-block]').forEach(el => { el.outerHTML = docsBlock(); });
 })();

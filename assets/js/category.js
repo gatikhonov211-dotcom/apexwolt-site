@@ -5,7 +5,7 @@
    Фильтры «Выбор по параметрам» строятся из характеристик товаров в текущей выборке. */
 (function () {
   const { sections, categories, products, novelties } = window.APEX_DATA;
-  const { esc, money, plural, productCard, findProducts, specPair } = window.ApexUI;
+  const { esc, money, plural, productCard, findProducts, specPair, priceKinds } = window.ApexUI;
   const PAGE_SIZE = 12;
   const el = id => document.getElementById(id);
   const list = el('products');
@@ -168,8 +168,8 @@
         <label class="check"><input type="checkbox" name="stock"${state.stockOnly ? ' checked' : ''}><span>Только в наличии</span></label>
       </fieldset>
       ${priceBounds[1] > priceBounds[0] ? `<div class="fgroup">
-        <p class="fgroup-title">МРЦ</p>
-        <input type="range" name="price" min="${priceBounds[0]}" max="${priceBounds[1]}" step="${priceBounds[1] > 20000 ? 500 : 50}" value="${state.priceMax || priceBounds[1]}" aria-label="Максимальная МРЦ">
+        <p class="fgroup-title">${priceKinds(pool)}</p>
+        <input type="range" name="price" min="${priceBounds[0]}" max="${priceBounds[1]}" step="${priceBounds[1] > 20000 ? 500 : 50}" value="${state.priceMax || priceBounds[1]}" aria-label="Максимальная цена">
         <p class="range-value"><output data-for="price">${fmtPrice(state.priceMax || priceBounds[1])}</output></p>
       </div>` : ''}
       ${facets.map((f, i) => `<fieldset class="fgroup"><legend class="fgroup-title">${esc(f.key)}</legend>
@@ -223,7 +223,7 @@
     if (state.q) chips.push(['q', `Поиск: «${state.q}»`]);
     state.brands.forEach(b => chips.push([`brand${SEP}${b}`, b]));
     if (state.stockOnly) chips.push(['stock', 'В наличии']);
-    if (state.priceMax) chips.push(['price', `МРЦ ${fmtPrice(state.priceMax)}`]);
+    if (state.priceMax) chips.push(['price', `${priceKinds(basePool())} ${fmtPrice(state.priceMax)}`]);
     Object.entries(state.facets).forEach(([k, vals]) => vals.forEach(v => chips.push([`f${SEP}${k}${SEP}${v}`, `${k}: ${v}`])));
     el('active-filters').innerHTML = chips.map(([k, t]) => `<button type="button" class="tag" data-remove="${esc(k)}" aria-label="Убрать фильтр: ${esc(t)}">${esc(t)}<span aria-hidden="true">×</span></button>`).join('')
       + (chips.length > 1 ? '<button type="button" class="link muted" data-remove="all">Сбросить всё</button>' : '');

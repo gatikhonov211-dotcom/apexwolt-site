@@ -2,7 +2,7 @@
    полный список характеристик, похожие товары из той же категории и направления. */
 (function () {
   const { products, categories, novelties } = window.APEX_DATA;
-  const { esc, money, icon, summary, specPair, stockLabel, productCard, imageOf, sectionOf } = window.ApexUI;
+  const { esc, money, icon, summary, specPair, stockLabel, productCard, imageOf, sectionOf, priceKind } = window.ApexUI;
   const store = window.ApexStore;
   const root = document.getElementById('product-root');
   const crumbs = document.getElementById('breadcrumbs');
@@ -20,7 +20,7 @@
   const cat = categories[p.category];
   const section = sectionOf(p);
   document.title = `${p.name} — артикул ${p.sku} | APEXWOLT`;
-  document.querySelector('meta[name="description"]').content = `${p.name}. ${summary(p)}.${p.price ? ` МРЦ ${money(p.price)}.` : ''}`;
+  document.querySelector('meta[name="description"]').content = `${p.name}. ${summary(p)}.${p.price ? ` ${priceKind(p)} ${money(p.price)}.` : ''}`;
   crumbs.insertAdjacentHTML('beforeend', `
     <span aria-hidden="true">/</span><a href="category.html?section=${section.key}">${esc(section.title)}</a>
     <span aria-hidden="true">/</span><a href="category.html?category=${p.category}">${esc(cat.title)}</a>
@@ -52,7 +52,7 @@
       <div class="pdp-gallery">
         <div class="pdp-media${p.image ? '' : ' is-placeholder'}">
           <img id="pdp-shot" src="${esc(shots.length ? shots[shot] : imageOf(p))}" alt="${p.image ? `${esc(p.title)} — фото ${shot + 1} из ${shots.length}` : 'Фото товара скоро появится'}" width="900" height="900">
-          <div class="card-flags">${novelties.includes(p.id) ? '<span class="flag flag-new">Новинка</span>' : ''}${p.price ? '<span class="flag">МРЦ</span>' : ''}</div>
+          <div class="card-flags">${novelties.includes(p.id) ? '<span class="flag flag-new">Новинка</span>' : ''}${p.price ? `<span class="flag">${priceKind(p)}</span>` : ''}</div>
           ${p.image ? '' : '<p class="placeholder-note">Фото товара скоро появится</p>'}
           ${shots.length > 1 ? `
             <button type="button" class="icon-btn shot-nav is-prev" data-shot-step="-1" aria-label="Предыдущее фото">${icon.left}</button>
@@ -72,7 +72,7 @@
         ${keyFacts.length ? `<dl class="facts">${keyFacts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
         <div class="pdp-buy glass">
           <div class="price price-lg">
-            ${p.price ? `<span class="muted">МРЦ</span><strong>${money(p.price)}</strong>` : '<strong class="price-ask">Цена по запросу</strong><span class="muted">Менеджер пришлёт условия в ответ на заявку</span>'}
+            ${p.price ? `<span class="muted">${priceKind(p)}</span><strong>${money(p.price)}</strong>` : '<strong class="price-ask">Цена по запросу</strong><span class="muted">Менеджер пришлёт условия в ответ на заявку</span>'}
           </div>
           <div class="locked">
             ${icon.lock}
