@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
@@ -121,6 +122,20 @@ for (const [key, parts] of Object.entries(SPLITS)) {
 const NOVELTY_SECTION = 'svarochnoe-oborudovanie';
 const inNoveltySection = id => { const p = products.find(x => x.id === id); return p && categories[p.category].section === NOVELTY_SECTION; };
 
+// Метка версии в адресе фото (?v=хеш файла): после замены фото браузер сразу берёт новое,
+// а не показывает сохранённое в кеше (GitHub Pages кеширует файлы до 10 минут).
+const versioned = new Map();
+const withVersion = src => {
+  if (!src) return src;
+  if (!versioned.has(src)) {
+    const file = path.join(root, src);
+    versioned.set(src, fs.existsSync(file) ? `${src}?v=${crypto.createHash('sha1').update(fs.readFileSync(file)).digest('hex').slice(0, 8)}` : src);
+  }
+  return versioned.get(src);
+};
+for (const p of products) { p.image = withVersion(p.image); p.images = p.images.map(withVersion); }
+for (const c of Object.values(categories)) c.image = withVersion(c.image);
+
 const data = { sections, categories, products, novelties: novelties.filter(inNoveltySection) };
 // Старые файлы каталога (PNG и т. п.) удаляем, оставляем только актуальные WebP.
 const keep = new Set(convertJobs.map(j => path.basename(j.to)));
@@ -132,5 +147,11 @@ for (const job of convertJobs) {
 
 fs.writeFileSync(path.join(root, 'assets', 'js', 'data.js'),
   `/* Сгенерировано tools/build-data.mjs из каталога APEXWOLT B2B — не редактировать вручную. */\nwindow.APEX_DATA = ${JSON.stringify(data)};\n`);
+const dataHash = crypto.createHash('sha1').update(fs.readFileSync(path.join(root, 'assets', 'js', 'data.js'))).digest('hex').slice(0, 8);
+for (const page of fs.readdirSync(root).filter(f => f.endsWith('.html'))) {
+  const file = path.join(root, page);
+  const html = fs.readFileSync(file, 'utf8').replace(/assets\/js\/data\.js(\?v=[0-9a-f]+)?"/g,`assets/js/data.js?v=${dataHash}"`);
+  fs.writeFileSync(file, html);
+}
 console.log(`галереи: ${withGallery} товаров`);
 console.log(`data.js: ${sections.length} направлений, ${Object.keys(categories).length} категорий, ${products.length} товаров, ${data.novelties.length} новинок, ${[...copied.values()].filter(Boolean).length} фото`);
