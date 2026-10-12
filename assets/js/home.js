@@ -104,11 +104,11 @@
     PROPEL: 'Оснастка и расходные материалы',
     'APEX-KREP': 'Крепёж для строительных задач'
   };
-  el('brand-grid').innerHTML = Object.entries(brandInfo).map(([b, text]) => {
-    const n = products.filter(p => p.brand === b).length;
-    return `<a class="brand-card" href="category.html?brand=${encodeURIComponent(b)}">
-      <span class="brand-logo"><img src="assets/img/brands/${b.toLowerCase()}.svg" alt="${b === 'APEX-KREP' ? 'APEX–КРЕП' : b}"${b === 'APEXWOLT' ? ' class="is-light"' : ''}></span><span>${text}</span>
-      <small>${n} ${plural(n, 'позиция', 'позиции', 'позиций')} ${icon.arrow}</small>
+  el('brand-grid').innerHTML = Object.keys(brandInfo).map(b => {
+    const label = b === 'APEX-KREP' ? 'APEX–КРЕП' : b;
+    const file = b === 'APEXWOLT' ? 'apexwolt.png' : `${b.toLowerCase()}.svg`;
+    return `<a class="brand-card" href="category.html?brand=${encodeURIComponent(b)}" title="${brandInfo[b]}" aria-label="${label}: все товары бренда">
+      <span class="brand-logo"><img src="assets/img/brands/${file}" alt="${label}"></span>
     </a>`;
   }).join('');
 
