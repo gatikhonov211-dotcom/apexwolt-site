@@ -1,5 +1,6 @@
 // Готовит фото товаров для сайта: WebP до 1200 px, светло-серый студийный фон → чисто белый.
-// Запуск: npm install && node tools/process-photos.mjs <папка с выгрузкой Яндекс Диска>
+// Запуск: npm install && node tools/process-photos.mjs <папка выгрузки> [source]
+// source — какие модели из photo-map.json обрабатывать (apex | heat); без него — все.
 // Порядок в галерее: сначала рендер модели (PNG с названием), затем фото 1, 2, 3…, затем остальное.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -48,7 +49,8 @@ const order = (a, b) => {
   return rank(a) - rank(b) || parseInt(a, 10) - parseInt(b, 10) || a.localeCompare(b, 'ru');
 };
 
-for (const m of models) {
+const only = process.argv[3];
+for (const m of models.filter(x => !only || x.source === only)) {
   const dir = path.join(src, ...m.dir.split('/'));
   if (!fs.existsSync(dir)) { console.warn(`нет папки: ${m.dir}`); continue; }
   const out = path.join(outRoot, m.slug);
@@ -56,6 +58,8 @@ for (const m of models) {
   fs.mkdirSync(out, { recursive: true });
   const seen = new Set();
   const names = fs.readdirSync(dir).filter(n => /\.(jpe?g|png|webp)$/i.test(n)).sort(order);
+  // lead в photo-map.json — какой снимок поставить главным (например, сам прибор вместо коробки).
+  if (m.lead && names.includes(m.lead)) names.unshift(...names.splice(names.indexOf(m.lead), 1));
   let n = 0;
   for (const name of names) {
     const buf = fs.readFileSync(path.join(dir, name));
