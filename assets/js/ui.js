@@ -86,6 +86,12 @@
     { kind: 'Промо', title: 'Инструменты из Сибири', text: 'Короткий ролик о бренде APEXWOLT', image: 'assets/img/video/review-promo.jpg', youtube: '1ntNRg_MeZg' },
     { kind: 'Shorts', title: 'Короткие ролики', text: 'Быстрые моменты из работы инструмента', image: 'assets/img/video/review-shorts.jpg', href: 'https://www.youtube.com/@apexwolt/shorts' }
   ];
+  // Ролики APEXWOLT с Яндекс Диска («Видео для сайта»), хранятся на сайте.
+  const clips = [
+    { src: 'assets/video/apexwolt-1.mp4', title: 'APEXWOLT · ролик 1', duration: '0:23' },
+    { src: 'assets/video/apexwolt-2.mp4', title: 'APEXWOLT · ролик 2', duration: '0:22' },
+    { src: 'assets/video/apexwolt-3.mp4', title: 'APEXWOLT · ролик 3', duration: '0:25' }
+  ];
   const channels = [
     ['YouTube', 'https://youtube.com/@apexwolt'],
     ['VK Видео', 'https://vk.ru/club235673348'],
@@ -123,6 +129,13 @@
     </div>`).join('') + '<p class="hint docs-hint">Документы оформлены на импортёра продукции. Оригиналы и другие разрешительные документы предоставит менеджер по запросу.</p>';
 
   const videoBlock = () => `
+    <div class="clip-grid">
+      ${clips.map(c => `
+        <figure class="clip">
+          <video controls playsinline preload="metadata" src="${c.src}#t=0.5" aria-label="${esc(c.title)}"></video>
+          <figcaption><b>${esc(c.title)}</b><span>${c.duration}</span></figcaption>
+        </figure>`).join('')}
+    </div>
     <div class="video-grid">
       ${videos.map((v, i) => {
         const inner = `<span class="video-thumb"><img src="${v.image}" alt="" loading="lazy"><span class="play">${v.youtube ? icon.play : icon.external}</span></span>
@@ -593,5 +606,10 @@
   syncCounts();
 
   window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, docsBlock, reduceMotion, PLACEHOLDER };
+  // Одновременно играет только один ролик.
+  document.addEventListener('play', e => {
+    if (!e.target.closest || !e.target.closest('.clip')) return;
+    document.querySelectorAll('.clip video').forEach(v => { if (v !== e.target) v.pause(); });
+  }, true);
   document.querySelectorAll('[data-docs-block]').forEach(el => { el.outerHTML = docsBlock(); });
 })();
