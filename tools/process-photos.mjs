@@ -16,7 +16,8 @@ const outRoot = path.join(root, 'assets', 'img', 'products');
 const MAX = 1200;
 
 // Фон у снимков разный (студийный серый, виньетка), поэтому его яркость меряем по краям кадра.
-// Нейтральные пиксели от «чуть темнее фона» и светлее плавно доводим до белого; цветные и тёмные не трогаем.
+// Осветляем только фон: нейтральные светлые пиксели, связанные с краями кадра (заливка от рамки).
+// Белый пластик инструмента окружён тёмным контуром, заливка до него не доходит — без засветов.
 const whiten = (data, width, height, channels) => {
   const lum = i => (data[i] + data[i + 1] + data[i + 2]) / 3;
   const edge = [];
@@ -28,13 +29,35 @@ const whiten = (data, width, height, channels) => {
   edge.sort((a, b) => a - b);
   const p10 = edge[Math.floor(edge.length * 0.1)];
   const p60 = edge[Math.floor(edge.length * 0.6)];
+  const p95 = edge[Math.floor(edge.length * 0.95)];
   if (p10 < 150) return data; // тёмный или цветной фон (например, фото кейса в интерьере) — не трогаем
-  const from = p10 - 20, to = Math.min(250, Math.max(p60, from + 12));
-  for (let i = 0; i < data.length; i += channels) {
-    const r = data[i], g = data[i + 1], b = data[i + 2];
-    if (Math.max(r, g, b) - Math.min(r, g, b) > 26) continue;
+  // Пластик защищён условием «не светлее фона» (hi), поэтому фон доводим до белого уже на p10 + 8.
+  const from = p10 - 20, to = Math.min(250, from + 28);
+  const hi = Math.min(252, p95 + 6);
+  const isBg = p => {
+    const i = p * channels, r = data[i], g = data[i + 1], b = data[i + 2];
     const l = (r + g + b) / 3;
-    if (l <= from) continue;
+    // Светлее самого фона — это белый пластик/блики инструмента, их не трогаем.
+    return Math.max(r, g, b) - Math.min(r, g, b) <= 26 && l > from && l <= hi;
+  };
+  const bg = new Uint8Array(width * height);
+  const queue = new Int32Array(width * height);
+  let head = 0, tail = 0;
+  const seed = p => { if (!bg[p] && isBg(p)) { bg[p] = 1; queue[tail++] = p; } };
+  for (let x = 0; x < width; x++) { seed(x); seed((height - 1) * width + x); }
+  for (let y = 0; y < height; y++) { seed(y * width); seed(y * width + width - 1); }
+  while (head < tail) {
+    const p = queue[head++], x = p % width;
+    if (x > 0) seed(p - 1);
+    if (x < width - 1) seed(p + 1);
+    if (p >= width) seed(p - width);
+    if (p < width * (height - 1)) seed(p + width);
+  }
+  for (let p = 0; p < bg.length; p++) {
+    if (!bg[p]) continue;
+    const i = p * channels;
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    const l = (r + g + b) / 3;
     const t = Math.min(1, (l - from) / (to - from));
     const k = t * t * (3 - 2 * t);
     data[i] = r + (255 - r) * k;
