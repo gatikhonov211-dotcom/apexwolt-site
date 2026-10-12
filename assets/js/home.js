@@ -107,7 +107,7 @@
   el('brand-grid').innerHTML = Object.entries(brandInfo).map(([b, text]) => {
     const n = products.filter(p => p.brand === b).length;
     return `<a class="brand-card" href="category.html?brand=${encodeURIComponent(b)}">
-      <b>${b === 'APEX-KREP' ? 'APEX–КРЕП' : b}</b><span>${text}</span>
+      <span class="brand-logo"><img src="assets/img/brands/${b.toLowerCase()}.svg" alt="${b === 'APEX-KREP' ? 'APEX–КРЕП' : b}"${b === 'APEXWOLT' ? ' class="is-light"' : ''}></span><span>${text}</span>
       <small>${n} ${plural(n, 'позиция', 'позиции', 'позиций')} ${icon.arrow}</small>
     </a>`;
   }).join('');
