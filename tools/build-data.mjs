@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.resolve(process.argv[2] || path.join(root, '..', 'apexwolt-b2b', 'dist'));
@@ -23,14 +24,17 @@ const { categoryData, sectionData } = context;
 // Логотип как «картинка категории» в исходнике означает «фото нет» — показываем фирменную заглушку.
 const isPlaceholder = src => !src || /apexwolt-logo/.test(src);
 fs.mkdirSync(imgOut, { recursive: true });
+// Фото каталога переводятся в WebP до 900 px (прозрачность сохраняется): исходные PNG весят 0,6–1,8 МБ
+// и тормозили страницы каталога. Конвертация — одним проходом в конце скрипта.
 const copied = new Map();
+const convertJobs = [];
 const image = src => {
   if (isPlaceholder(src)) return '';
   if (copied.has(src)) return copied.get(src);
   const from = path.join(dist, src);
   if (!fs.existsSync(from)) { console.warn(`нет файла: ${src}`); copied.set(src, ''); return ''; }
-  const name = path.basename(src);
-  fs.copyFileSync(from, path.join(imgOut, name));
+  const name = `${path.basename(src, path.extname(src))}.webp`;
+  convertJobs.push({ from, to: path.join(imgOut, name) });
   const out = `assets/img/catalog/${name}`;
   copied.set(src, out);
   return out;
@@ -118,6 +122,14 @@ const NOVELTY_SECTION = 'svarochnoe-oborudovanie';
 const inNoveltySection = id => { const p = products.find(x => x.id === id); return p && categories[p.category].section === NOVELTY_SECTION; };
 
 const data = { sections, categories, products, novelties: novelties.filter(inNoveltySection) };
+// Старые файлы каталога (PNG и т. п.) удаляем, оставляем только актуальные WebP.
+const keep = new Set(convertJobs.map(j => path.basename(j.to)));
+for (const f of fs.readdirSync(imgOut)) if (!keep.has(f)) fs.rmSync(path.join(imgOut, f));
+for (const job of convertJobs) {
+  if (fs.existsSync(job.to) && fs.statSync(job.to).mtimeMs >= fs.statSync(job.from).mtimeMs) continue;
+  await sharp(job.from).resize(900, 900, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 82, alphaQuality: 90 }).toFile(job.to);
+}
+
 fs.writeFileSync(path.join(root, 'assets', 'js', 'data.js'),
   `/* Сгенерировано tools/build-data.mjs из каталога APEXWOLT B2B — не редактировать вручную. */\nwindow.APEX_DATA = ${JSON.stringify(data)};\n`);
 console.log(`галереи: ${withGallery} товаров`);
