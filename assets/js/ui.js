@@ -65,7 +65,7 @@
       <div class="card-body">
         ${p.brand ? `<p class="card-brand">${esc(p.brand)}</p>` : ''}
         <h3 class="card-title"><a href="${productUrl(p)}" title="${esc(p.name)}">${esc(p.title)}</a></h3>
-        ${p.kit ? `<p class="card-kit">${esc(p.kit)}</p>` : ''}
+        <p class="card-kit"${p.kit ? '' : ' aria-hidden="true"'}>${p.kit ? esc(p.kit) : '&nbsp;'}</p>
         <p class="card-specs">${esc(summary(p))}</p>
         <p class="card-sku">Артикул: ${esc(p.sku)}</p>
         ${stockLabel(p)}

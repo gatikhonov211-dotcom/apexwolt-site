@@ -645,3 +645,17 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 @media (max-width:860px){.clip-grid{grid-template-columns:1fr}}
 .block-first{padding-top:clamp(24px,3vw,40px)}
 .block-first+.hero{margin-top:clamp(36px,5vw,64px)}
+/* одинаковый размер карточек: фото-блок фиксированной пропорции, текст фиксированной высоты */
+.card-media{position:relative;display:block;padding:0;overflow:hidden;aspect-ratio:1/.86}
+.card-media img{position:absolute;top:18px;left:18px;width:calc(100% - 36px);height:calc(100% - 36px);object-fit:contain}
+.card.is-compact .card-media{aspect-ratio:1/.8}
+.card-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:2.64em}
+.card-kit{min-height:1.4em;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-specs{min-height:6em}
+.card.is-compact .card-specs{min-height:4.5em}
+.is-list .card-media{aspect-ratio:auto;height:100%;min-height:180px}
+.is-list .card-specs{min-height:0}
+@media (max-width:860px){.card-media img{top:10px;left:10px;width:calc(100% - 20px);height:calc(100% - 20px)}.card-title{min-height:2.6em}.card-specs{min-height:7.5em}.card.is-compact .card-specs{min-height:4.5em}.is-list .card-media{min-height:140px}}
+/* меню каталога — непрозрачное */
+.mega{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border:1px solid var(--line-2);box-shadow:0 24px 60px rgba(16,17,20,.16),0 2px 8px rgba(16,17,20,.06)}
+.search-results{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:0 18px 44px rgba(16,17,20,.14)}
