@@ -64,6 +64,14 @@ for (const [key, c] of Object.entries(categoryData)) {
   }
 }
 
+// Цены для сайта поверх каталога основного проекта (tools/price-overrides.json).
+const priceOverrides = JSON.parse(fs.readFileSync(path.join(root, 'tools', 'price-overrides.json'), 'utf8')).prices;
+for (const [id, price] of Object.entries(priceOverrides)) {
+  const p = products.find(x => x.id === id);
+  if (!p) throw new Error(`price-overrides.json: нет товара ${id}`);
+  p.price = Number(price);
+}
+
 // Галереи фото по моделям (tools/photo-map.json + tools/process-photos.mjs). Первое фото — главное.
 const photoMap = JSON.parse(fs.readFileSync(path.join(root, 'tools', 'photo-map.json'), 'utf8'));
 let withGallery = 0;
