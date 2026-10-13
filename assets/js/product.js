@@ -53,7 +53,6 @@
         <div class="pdp-media${p.image ? '' : ' is-placeholder'}">
           <img id="pdp-shot" src="${esc(shots.length ? shots[shot] : imageOf(p))}" alt="${p.image ? `${esc(p.title)} — фото ${shot + 1} из ${shots.length}` : 'Фото товара скоро появится'}" width="900" height="900">
           <div class="card-flags">${novelties.includes(p.id) ? '<span class="flag flag-new">Новинка</span>' : ''}${p.price ? `<span class="flag">${priceKind(p)}</span>` : ''}</div>
-          ${p.image ? '' : '<p class="placeholder-note">Фото товара скоро появится</p>'}
           ${shots.length > 1 ? `
             <button type="button" class="icon-btn shot-nav is-prev" data-shot-step="-1" aria-label="Предыдущее фото">${icon.left}</button>
             <button type="button" class="icon-btn shot-nav is-next" data-shot-step="1" aria-label="Следующее фото">${icon.right}</button>

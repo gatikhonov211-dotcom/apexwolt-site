@@ -657,3 +657,4 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .subscribe h2{margin:0;line-height:46px}
 .subscribe-copy p{margin-top:6px}
 @media (max-width:860px){.subscribe h2{line-height:1.1;margin-bottom:6px}}
+.card-media.is-placeholder img,.pdp-media.is-placeholder img{opacity:1}

@@ -16,7 +16,9 @@
   const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const sectionOf = p => sections.find(s => s.key === categories[p.category].section);
   const productUrl = p => `product.html?id=${encodeURIComponent(p.id)}`;
-  const imageOf = p => p.image || PLACEHOLDER;
+  // Нет фото — заставка бренда товара (логотип + «Фото скоро появится»); без бренда — общая заглушка.
+  const BRAND_PLACEHOLDERS = { APEXWOLT: 'apexwolt', VOLTEXA: 'voltexa', SUMO: 'sumo', PROPEL: 'propel', 'APEX-KREP': 'apex-krep' };
+  const imageOf = p => p.image || (BRAND_PLACEHOLDERS[p.brand] ? `assets/img/placeholders/${BRAND_PLACEHOLDERS[p.brand]}.webp` : PLACEHOLDER);
   const novelties = new Set(window.APEX_DATA.novelties);
   // Вид цены: у VOLTEXA — рекомендованная розничная (РРЦ), у остальных брендов — минимальная (МРЦ).
   const priceKind = p => p.brand === 'VOLTEXA' ? 'РРЦ' : 'МРЦ';

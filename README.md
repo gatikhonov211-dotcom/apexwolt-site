@@ -49,18 +49,22 @@ node tools/build-data.mjs ../apexwolt-b2b/dist
 
 ## Фото товаров
 
-Исходники — Яндекс Диск «Фото 2 партии». Скачайте папку, затем:
+Исходники — Яндекс Диск («Фото 2 партии» APEXWOLT, папка теплового оборудования VOLTEXA). Скачайте их, затем:
 
 ```bash
 npm install
-node tools/process-photos.mjs <папка с выгрузкой>
+node tools/cutout-photos.mjs <выгрузка APEXWOLT> <папка вырезок>          # фон → белый (нейросеть, локально)
+node tools/process-photos.mjs <папка вырезок> apex <выгрузка APEXWOLT>    # галереи APEXWOLT
+node tools/process-photos.mjs <выгрузка VOLTEXA> heat                      # галереи VOLTEXA, как есть
 node tools/build-data.mjs ../apexwolt-b2b/dist
 ```
 
-- `tools/photo-map.json` — какая папка к каким артикулам относится (варианты «Б» получают фото комплекта).
-- `tools/process-photos.mjs` — WebP до 1200 px без изменения цветов и фона (снимки как на Диске);
-  первым идёт рендер модели, затем фото 1, 2, 3…
-- Результат — `assets/img/products/<модель>/NN.webp`, галерея на странице товара.
+- `tools/photo-map.json` — папка → артикулы; `order` — порядок (товар, затем коробка и кейс);
+  `original` — фото, для которых берётся исходник без вырезки (крупные планы белого корпуса); `lead` — главный снимок.
+- `tools/cutout-photos.mjs` — вырезка фона @imgly/background-removal-node; при первой установке разрешите сборку sharp:
+  `npm install-scripts approve sharp && npm rebuild sharp`.
+- Товары без фото показывают заставку своего бренда (`assets/img/placeholders/`).
+- Цены для сайта поверх основного каталога — `tools/price-overrides.json`.
 
 ## Структура
 
