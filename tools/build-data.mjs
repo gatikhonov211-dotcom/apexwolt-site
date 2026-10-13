@@ -155,10 +155,13 @@ for (const job of convertJobs) {
 
 fs.writeFileSync(path.join(root, 'assets', 'js', 'data.js'),
   `/* Сгенерировано tools/build-data.mjs из каталога APEXWOLT B2B — не редактировать вручную. */\nwindow.APEX_DATA = ${JSON.stringify(data)};\n`);
-const dataHash = crypto.createHash('sha1').update(fs.readFileSync(path.join(root, 'assets', 'js', 'data.js'))).digest('hex').slice(0, 8);
+// Метки версий (?v=хеш файла) для всех скриптов и стилей на страницах: после обновления браузер
+// сразу берёт новый файл, а не версию из кеша (GitHub Pages кеширует до 10 минут).
+const fileHash = rel => crypto.createHash('sha1').update(fs.readFileSync(path.join(root, rel))).digest('hex').slice(0, 8);
 for (const page of fs.readdirSync(root).filter(f => f.endsWith('.html'))) {
   const file = path.join(root, page);
-  const html = fs.readFileSync(file, 'utf8').replace(/assets\/js\/data\.js(\?v=[0-9a-f]+)?"/g,`assets/js/data.js?v=${dataHash}"`);
+  const html = fs.readFileSync(file, 'utf8').replace(/(src|href)="(assets\/(?:js|css)\/[\w.-]+\.(?:js|css))(\?v=[0-9a-f]+)?"/g,
+    (m, attr, rel) => `${attr}="${rel}?v=${fileHash(rel)}"`);
   fs.writeFileSync(file, html);
 }
 console.log(`галереи: ${withGallery} товаров`);

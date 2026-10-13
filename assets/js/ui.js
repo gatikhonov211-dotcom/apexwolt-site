@@ -2,7 +2,7 @@
    панели избранного/сравнения/заявки, видеоплеер, подписка, подвал, общий рендер карточки товара. */
 (function () {
   const MAIN_SITE = 'https://apexwolt-b2b-preview.netlify.app';
-  const PLACEHOLDER = 'assets/img/category-placeholder.svg';
+  const PLACEHOLDER = 'assets/img/placeholders/default.webp';
   const { sections, categories, products } = window.APEX_DATA;
   const store = window.ApexStore;
   const page = document.body.dataset.page;
