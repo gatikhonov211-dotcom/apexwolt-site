@@ -658,3 +658,8 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .subscribe-copy p{margin-top:6px}
 @media (max-width:860px){.subscribe h2{line-height:1.1;margin-bottom:6px}}
 .card-media.is-placeholder img,.pdp-media.is-placeholder img{opacity:1}
+/* «В наличии»: ровные ряды по 4 карточки (2 на телефоне) */
+#stock-grid.products.is-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+#stock-grid .more-tile{min-height:0}
+@media (max-width:1180px){#stock-grid.products.is-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){#stock-grid .more-tile{grid-column:auto}}

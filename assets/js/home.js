@@ -74,12 +74,16 @@
   let activeTab = stockSections[0] && stockSections[0].key;
   const renderStock = () => {
     const s = sections.find(x => x.key === activeTab);
-    const items = products.filter(p => p.stock && s.categories.includes(p.category))
-      .sort((a, b) => (!!b.image - !!a.image) || (novelties.includes(b.id) - novelties.includes(a.id)))
-      .slice(0, 8);
+    // Карточки + чёрная плитка заполняют целые ряды по 4: 7 товаров (два ряда) или 3 (один ряд).
+    // Впереди товары в наличии с фото, затем с фото под заказ, затем остальные.
+    const rank = p => (p.image ? 0 : 2) + (p.stock ? 0 : 1);
+    const pool = products.filter(p => s.categories.includes(p.category))
+      .sort((a, b) => rank(a) - rank(b) || (novelties.includes(b.id) - novelties.includes(a.id)));
+    const count = pool.length >= 7 ? 7 : pool.length >= 3 ? 3 : pool.length;
+    const items = pool.slice(0, count);
     el('stock-tabs').innerHTML = stockSections.map(x => `<button type="button" role="tab" class="chip${x.key === activeTab ? ' is-on' : ''}" aria-selected="${x.key === activeTab}" data-tab="${x.key}">${esc(x.title)}</button>`).join('');
     el('stock-grid').innerHTML = items.map(p => productCard(p)).join('')
-      + `<a class="more-tile" href="category.html?section=${s.key}&stock=1"><b>Все товары направления</b><span>${esc(s.title)}</span>${icon.arrow}</a>`;
+      + `<a class="more-tile" href="category.html?section=${s.key}"><b>Все товары направления</b><span>${esc(s.title)}</span>${icon.arrow}</a>`;
   };
   el('stock-tabs').addEventListener('click', e => {
     const b = e.target.closest('[data-tab]');
