@@ -8,6 +8,7 @@ import crypto from 'node:crypto';
 import { isValidInn } from './inn.mjs';
 import { findPartyByInn, MOCK_PARTIES } from './dadata.mjs';
 import { findRegistrationByInn, saveRegistration } from './store.mjs';
+import { notifyRegistration } from './mailer.mjs';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[\d\s()-]{10,20}$/;
@@ -105,7 +106,8 @@ export async function handler(event) {
         coefficient: null // ставит менеджер при одобрении
       };
       await saveRegistration(record);
-      console.log(`[register] новая заявка ${record.id}: ${record.company.name} (ИНН ${inn})`);
+      console.log(`[register] новая заявка ${record.id}`);
+      await notifyRegistration(record).catch(e => console.error('[mail]', e.message));
       return reply(201, { ok: true, id: record.id, status: record.status }, origin);
     }
 

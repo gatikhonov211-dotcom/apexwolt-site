@@ -81,7 +81,10 @@ npm test                               # тесты API
 - `backend/api.mjs` — обработчик (совместим с Yandex Cloud Function + API Gateway):
   `GET /api/company?inn=`, `POST /api/register`, `GET /api/health`. CORS — только сайты из `ALLOWED_ORIGINS`,
   ограничение 20 запросов ИНН в минуту с адреса, кеш ответов.
-- `backend/store.mjs` — заявки в `backend/data/registrations.json` (не в Git); в облаке — YDB/PostgreSQL.
+- `backend/store.mjs` — заявки в `backend/data/registrations.json` (не в Git); в облаке — YDB (`store-ydb.mjs`).
+- `backend/mailer.mjs` — письмо менеджерам (`MANAGER_EMAILS`, ответ уходит клиенту) и подтверждение клиенту.
+  Отправка по SMTP (`SMTP_*`, Yandex Cloud Postbox или почтовый ящик); `MAIL_MOCK=1` — письма в `backend/data/outbox/*.eml`.
+  Адреса и пароли — только в `backend/.env` / переменных функции.
 - `assets/js/config.js` — адрес API: локально `localhost:8787`, на сайте пусто, пока сервер не развёрнут
   (форма показывает телефон и почту менеджера).
 

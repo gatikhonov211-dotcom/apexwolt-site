@@ -66,3 +66,22 @@ test('POST /api/register: проверка полей, сохранение, п�
   assert.equal(saved[0].coefficient, null);
   assert.equal((await call('POST', '/api/register', { body })).statusCode, 409);
 });
+
+test('Заявка: письмо менеджерам и подтверждение клиенту', async () => {
+  process.env.MAIL_MOCK = '1';
+  process.env.MANAGER_EMAILS = 'manager1@example.com, manager2@example.com';
+  const outbox = path.join(process.env.REG_DATA_DIR, 'outbox');
+  const before = fs.existsSync(outbox) ? fs.readdirSync(outbox).length : 0;
+  const r = await call('POST', '/api/register', { body: {
+    inn: '7707083893', companyName: 'ПАО Сбербанк <test>', contactName: 'Тест Тестов', email: 'client@example.com',
+    phone: '+7 900 000-00-00', consent: true } });
+  assert.equal(r.statusCode, 201);
+  const mails = fs.readdirSync(outbox).slice(before).map(f => fs.readFileSync(path.join(outbox, f), 'utf8'));
+  assert.equal(mails.length, 2);
+  const toManager = mails.find(m => /manager1@example\.com, manager2@example\.com/.test(m));
+  const toClient = mails.find(m => /^To: client@example\.com/m.test(m));
+  assert.ok(toManager, 'письмо менеджерам');
+  assert.ok(toClient, 'подтверждение клиенту');
+  assert.match(toManager, /Reply-To: client@example\.com/);
+  assert.match(toManager, /&lt;test&gt;/); // HTML экранируется
+});
