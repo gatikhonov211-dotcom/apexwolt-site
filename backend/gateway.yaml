@@ -1,0 +1,21 @@
+# Спецификация Yandex API Gateway: все маршруты /api/* → функция apex-api.
+# Подстановки FUNCTION_ID и SA_ID делает команда развёртывания (см. README, «Развёртывание в Yandex Cloud»).
+openapi: 3.0.0
+info:
+  title: apexwolt-b2b-api
+  version: 1.0.0
+x-yc-apigateway:
+  service_account_id: SA_ID
+paths:
+  /api/{route}:
+    parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          type: string
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: FUNCTION_ID
+        service_account_id: SA_ID

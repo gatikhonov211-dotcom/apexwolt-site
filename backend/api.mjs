@@ -68,7 +68,7 @@ function validateRegistration(b) {
 export async function handler(event) {
   const method = (event.httpMethod || 'GET').toUpperCase();
   const origin = event.headers?.origin || event.headers?.Origin || '';
-  const path = (event.path || event.url || '').split('?')[0].replace(/\/+$/, '');
+  const path = (event.url || event.path || '').split('?')[0].replace(/\/+$/, '');
   const query = event.queryStringParameters || {};
   const ip = event.requestContext?.identity?.sourceIp || event.headers?.['x-forwarded-for'] || 'local';
 

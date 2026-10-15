@@ -1,0 +1,8 @@
+{
+  "name": "apexwolt-api",
+  "private": true,
+  "description": "API регистрации партнёров для Yandex Cloud Function (entrypoint index.handler)",
+  "dependencies": {
+    "ydb-sdk": "^5.11.1"
+  }
+}
