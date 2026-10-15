@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Стать партнёром — APEXWOLT</title>
+  <meta name="description" content="Заявка на партнёрство APEXWOLT: персональные цены, закреплённый менеджер, стендовое оборудование.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/app.css?v=81fcfd63">
+</head>
+<body data-page="partner">
+  <a class="skip-link" href="#main">К содержимому</a>
+  <div data-slot="header"></div>
+
+  <main id="main" class="page">
+    <nav class="breadcrumbs" aria-label="Навигация">
+      <a href="index.html">Главная</a><span aria-hidden="true">/</span><span aria-current="page">Стать партнёром</span>
+    </nav>
+
+    <div class="partner-layout">
+      <header class="partner-intro">
+        <h1>Стать партнёром</h1>
+        <p class="category-lead">Оставьте заявку — менеджер проверит организацию и откроет персональные цены. До одобрения каталог доступен с МРЦ и РРЦ.</p>
+        <ol class="partner-steps">
+          <li><b>Заявка</b><span>ИНН — реквизиты заполнятся сами</span></li>
+          <li><b>Проверка</b><span>Менеджер проверит организацию и условия</span></li>
+          <li><b>Доступ</b><span>Вход по коду из письма и цены партнёра</span></li>
+        </ol>
+      </header>
+
+      <form class="partner-form" id="partner-form" novalidate>
+        <fieldset>
+          <legend>Организация</legend>
+          <div class="field inn-field">
+            <label for="pf-inn">ИНН</label>
+            <div class="inn-row">
+              <input id="pf-inn" name="inn" inputmode="numeric" maxlength="12" autocomplete="off" required aria-describedby="pf-inn-msg">
+              <button type="button" class="button button-ghost" id="pf-find">Заполнить по ИНН</button>
+            </div>
+            <p class="field-msg" id="pf-inn-msg" role="status"></p>
+          </div>
+          <div class="field"><label for="pf-company">Название</label><input id="pf-company" name="companyName" autocomplete="organization" required></div>
+          <div class="field-row">
+            <div class="field"><label for="pf-kpp">КПП</label><input id="pf-kpp" name="kpp" inputmode="numeric" maxlength="9"></div>
+            <div class="field"><label for="pf-ogrn">ОГРН / ОГРНИП</label><input id="pf-ogrn" name="ogrn" inputmode="numeric" maxlength="15"></div>
+          </div>
+          <div class="field"><label for="pf-address">Юридический адрес</label><input id="pf-address" name="address"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Контактное лицо</legend>
+          <div class="field-row">
+            <div class="field"><label for="pf-name">ФИО</label><input id="pf-name" name="contactName" autocomplete="name" required></div>
+            <div class="field"><label for="pf-position">Должность</label><input id="pf-position" name="position" autocomplete="organization-title"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="pf-email">Email для входа</label><input id="pf-email" name="email" type="email" autocomplete="email" required></div>
+            <div class="field"><label for="pf-phone">Телефон</label><input id="pf-phone" name="phone" type="tel" autocomplete="tel" placeholder="+7" required></div>
+          </div>
+          <div class="field"><label for="pf-comment">Комментарий</label><textarea id="pf-comment" name="comment" rows="3" placeholder="Формат точки продаж, интересующие направления"></textarea></div>
+        </fieldset>
+
+        <label class="check"><input type="checkbox" name="consent" required><span>Согласен на <a href="https://apexwolt-b2b-preview.netlify.app/consent-personal-data.html">обработку персональных данных</a> и с <a href="https://apexwolt-b2b-preview.netlify.app/platform-rules.html">правилами платформы</a></span></label>
+        <p class="form-msg" id="pf-msg" role="alert"></p>
+        <button type="submit" class="button button-dark button-wide" id="pf-submit">Отправить заявку</button>
+      </form>
+
+      <div class="partner-done" id="partner-done" hidden tabindex="-1">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+        <h2>Заявка отправлена</h2>
+        <p>Номер заявки <b id="pf-id"></b>. Менеджер проверит организацию и свяжется с вами. Когда доступ будет открыт, на указанный email придёт письмо.</p>
+        <a class="button button-dark" href="catalog.html">Перейти в каталог</a>
+      </div>
+    </div>
+  </main>
+
+  <div data-slot="footer"></div>
+
+  <script src="assets/js/config.js?v=a9e76a29"></script>
+  <script src="assets/js/data.js?v=135e00be"></script>
+  <script src="assets/js/store.js?v=d574a511"></script>
+  <script src="assets/js/ui.js?v=addda5b1"></script>
+  <script src="assets/js/partner.js?v=ae78e377"></script>
+</body>
+</html>

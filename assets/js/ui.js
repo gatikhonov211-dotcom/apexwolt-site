@@ -152,11 +152,11 @@
       </div>
     </div>`;
 
-  const nav = [['index.html#new', 'Новинки'], ['catalog.html', 'Каталог'], ['about.html', 'О компании'], ['about.html#video', 'Видео'], ['about.html#contacts', 'Контакты']];
+  const nav = [['index.html#new', 'Новинки'], ['catalog.html', 'Каталог'], ['about.html', 'О компании'], ['about.html#video', 'Видео'], ['about.html#contacts', 'Контакты'], ['partner.html', 'Стать партнёром']];
   const header = `
   <header class="site-header">
     <div class="topbar">
-      <nav aria-label="Разделы сайта">${nav.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}</nav>
+      <nav aria-label="Разделы сайта">${nav.map(([h, t]) => `<a href="${h}"${h === 'partner.html' ? ' class="topbar-cta"' : ''}>${t}</a>`).join('')}</nav>
       <span class="topbar-phones"><a class="topbar-phone" href="tel:+79330238843">+7 (933) 023-88-43</a><a class="topbar-phone" href="tel:+79086671194">+7 (908) 667-11-94</a></span>
     </div>
     <div class="header-inner">
@@ -219,6 +219,7 @@
         <a href="about.html">О компании</a>
         <a href="about.html#production">Производство</a>
         <a href="about.html#partners">Партнёрам</a>
+        <a href="partner.html">Стать партнёром</a>
         <a href="about.html#video">Видеообзоры</a>
         <a href="${MAIN_SITE}/faq.html">Вопросы и ответы</a>
       </div>

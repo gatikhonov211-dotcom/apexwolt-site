@@ -16,6 +16,7 @@ B2B-каталога. Код и тексты написаны заново; то
 | `category.html` | Любая выборка: `?section=…`, `?category=…`, `?brand=…`, `?q=…`, `?stock=1`, `?sort=new` |
 | `product.html` | Карточка товара: `?id=apexwolt-7-65-05` |
 | `about.html` | О компании: производство, поддержка партнёров, как работаем, бренды, видео, реквизиты (`#contacts`) |
+| `partner.html` | «Стать партнёром»: заявка с автозаполнением реквизитов по ИНН |
 | `documents.html` | Сертификаты и декларации о соответствии (PDF в `assets/docs/`), ссылка в подвале |
 
 Общие части (шапка с мега-меню и поиском, подвал, избранное, сравнение, заявка, видеоплеер)
@@ -65,6 +66,24 @@ node tools/build-data.mjs ../apexwolt-b2b/dist
   `npm install-scripts approve sharp && npm rebuild sharp`.
 - Товары без фото показывают заставку своего бренда (`assets/img/placeholders/`).
 - Цены для сайта поверх основного каталога — `tools/price-overrides.json`.
+
+## Регистрация партнёров (backend)
+
+`partner.html` — заявка «Стать партнёром»: реквизиты по ИНН подставляются через DaData, заявка уходит
+на сервер со статусом «на проверке». Токен DaData и персональные данные — только на сервере.
+
+```bash
+cp backend/.env.example backend/.env   # впишите DADATA_TOKEN (или DADATA_MOCK=1 для теста)
+npm run api                            # API на http://localhost:8787
+npm test                               # тесты API
+```
+
+- `backend/api.mjs` — обработчик (совместим с Yandex Cloud Function + API Gateway):
+  `GET /api/company?inn=`, `POST /api/register`, `GET /api/health`. CORS — только сайты из `ALLOWED_ORIGINS`,
+  ограничение 20 запросов ИНН в минуту с адреса, кеш ответов.
+- `backend/store.mjs` — заявки в `backend/data/registrations.json` (не в Git); в облаке — YDB/PostgreSQL.
+- `assets/js/config.js` — адрес API: локально `localhost:8787`, на сайте пусто, пока сервер не развёрнут
+  (форма показывает телефон и почту менеджера).
 
 ## Структура
 

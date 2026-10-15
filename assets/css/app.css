@@ -663,3 +663,24 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 #stock-grid .more-tile{min-height:0}
 @media (max-width:1180px){#stock-grid.products.is-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:860px){#stock-grid .more-tile{grid-column:auto}}
+/* страница «Стать партнёром» */
+.partner-layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(24px,4vw,56px);align-items:start;margin-top:22px}
+.partner-intro h1{margin:0;font-size:clamp(34px,4.4vw,56px);line-height:1;letter-spacing:-.05em}
+.partner-steps{display:grid;gap:10px;margin:24px 0 0;padding:0;list-style:none;counter-reset:s}
+.partner-steps li{display:flex;flex-direction:column;gap:2px;padding:14px 16px 14px 52px;border-radius:var(--r-md);background:#fff;border:1px solid var(--line-2);position:relative;counter-increment:s;font-size:14px}
+.partner-steps li::before{content:counter(s);position:absolute;left:16px;top:14px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--blue-soft);color:var(--blue);font-weight:700;font-size:13px}
+.partner-steps span{color:var(--muted)}
+.partner-form,.partner-done{display:flex;flex-direction:column;gap:14px;padding:clamp(18px,3vw,28px);border:1px solid var(--line-2);border-radius:var(--r-lg);background:#fff;box-shadow:var(--shadow)}
+.partner-form fieldset{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;border:0}
+.partner-form legend{margin-bottom:4px;font-size:17px;font-weight:700;letter-spacing:-.02em}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.inn-row{display:flex;gap:8px}
+.inn-row input{flex:1;min-width:0}
+.field-msg{min-height:18px;margin:0;font-size:13px}
+.field-msg.is-ok{color:var(--green)}.field-msg.is-error,.form-msg.is-error{color:var(--red)}.field-msg.is-info,.form-msg.is-info{color:var(--muted)}
+.partner-done{align-items:flex-start}
+.partner-done svg{width:48px;height:48px;padding:10px;border-radius:50%;background:rgba(31,157,85,.1);color:var(--green)}
+.partner-done h2{margin:0;font-size:28px;letter-spacing:-.04em}
+.partner-done p{margin:0;color:var(--ink-2);line-height:1.5}
+.topbar a.topbar-cta{color:var(--blue);font-weight:600}
+@media (max-width:860px){.partner-layout{grid-template-columns:1fr}.field-row{grid-template-columns:1fr}.inn-row{flex-direction:column}}

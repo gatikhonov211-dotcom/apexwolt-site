@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "data": "node tools/build-data.mjs",
-    "photos": "node tools/process-photos.mjs"
+    "photos": "node tools/process-photos.mjs",
+    "api": "node backend/server.mjs",
+    "test": "node --test backend/api.test.mjs"
   },
   "devDependencies": {
     "@imgly/background-removal-node": "^1.4.5",
