@@ -21,7 +21,7 @@
   const imageOf = p => p.image || (BRAND_PLACEHOLDERS[p.brand] ? `assets/img/placeholders/${BRAND_PLACEHOLDERS[p.brand]}.webp` : PLACEHOLDER);
   const novelties = new Set(window.APEX_DATA.novelties);
   // Вид цены: у VOLTEXA — рекомендованная розничная (РРЦ), у остальных брендов — минимальная (МРЦ).
-  const priceKind = p => p.brand === 'VOLTEXA' ? 'РРЦ' : 'МРЦ';
+  const priceKind = p => ['VOLTEXA', 'PROPEL'].includes(p.brand) ? 'РРЦ' : 'МРЦ';
   const priceKinds = list => [...new Set(list.map(priceKind))].join(' / ');
 
   const icon = {
