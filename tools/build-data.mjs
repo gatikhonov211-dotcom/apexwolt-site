@@ -65,11 +65,13 @@ for (const [key, c] of Object.entries(categoryData)) {
 }
 
 // Цены для сайта поверх каталога основного проекта (tools/price-overrides.json).
-const priceOverrides = JSON.parse(fs.readFileSync(path.join(root, 'tools', 'price-overrides.json'), 'utf8')).prices;
+// kinds — подпись цены у позиции («РРЦ»/«МРЦ»); без неё подпись выбирается по бренду (ApexUI.priceKind).
+const { prices: priceOverrides, kinds: priceKinds = {} } = JSON.parse(fs.readFileSync(path.join(root, 'tools', 'price-overrides.json'), 'utf8'));
 for (const [id, price] of Object.entries(priceOverrides)) {
   const p = products.find(x => x.id === id);
   if (!p) throw new Error(`price-overrides.json: нет товара ${id}`);
   p.price = Number(price);
+  if (priceKinds[id]) p.priceKind = priceKinds[id];
 }
 
 // Галереи фото по моделям (tools/photo-map.json + tools/process-photos.mjs). Первое фото — главное.
