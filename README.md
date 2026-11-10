@@ -81,12 +81,27 @@ npm test                               # тесты API
 - `backend/api.mjs` — обработчик (совместим с Yandex Cloud Function + API Gateway):
   `GET /api/company?inn=`, `POST /api/register`, `GET /api/health`. CORS — только сайты из `ALLOWED_ORIGINS`,
   ограничение 20 запросов ИНН в минуту с адреса, кеш ответов.
-- `backend/store.mjs` — заявки в `backend/data/registrations.json` (не в Git); в облаке — YDB (`store-ydb.mjs`).
+- `backend/store.mjs` — заявки в `backend/data/registrations.json` (не в Git); в облаке — приватный бакет Object Storage
+  (`store-s3.mjs`, `S3_BUCKET`, файл `registrations/<ИНН>.json`) или YDB (`store-ydb.mjs`).
 - `backend/mailer.mjs` — письмо менеджерам (`MANAGER_EMAILS`, ответ уходит клиенту) и подтверждение клиенту.
   Отправка по SMTP (`SMTP_*`, Yandex Cloud Postbox или почтовый ящик); `MAIL_MOCK=1` — письма в `backend/data/outbox/*.eml`.
   Адреса и пароли — только в `backend/.env` / переменных функции.
-- `assets/js/config.js` — адрес API: локально `localhost:8787`, на сайте пусто, пока сервер не развёрнут
-  (форма показывает телефон и почту менеджера).
+- `assets/js/config.js` — адрес API: локально `localhost:8787`, на сайте — API Gateway в Yandex Cloud.
+
+### Yandex Cloud (облако b2b-apexwolt, каталог default)
+
+| ресурс | имя |
+| --- | --- |
+| Cloud Function (nodejs22, entrypoint `index.handler`) | `apex-api` |
+| API Gateway (`backend/gateway.yaml`) | `apex-api-gw` |
+| Lockbox (`DADATA_TOKEN`) | `apex-api-secrets` |
+| Object Storage, приватный бакет заявок | `apexwolt-b2b-registrations` |
+| Сервисный аккаунт (storage.editor, lockbox.payloadViewer, functions.functionInvoker) | `apex-api-sa` |
+
+Новая версия функции — файлы `backend/` без `.env`, `data/`, тестов и `node_modules`:
+`yc serverless function version create --function-name apex-api --runtime nodejs22 --entrypoint index.handler
+--service-account-id <apex-api-sa> --source-path <папка> --secret name=apex-api-secrets,key=DADATA_TOKEN,environment-variable=DADATA_TOKEN
+--environment S3_BUCKET=apexwolt-b2b-registrations --environment MANAGER_EMAILS=… --environment ALLOWED_ORIGINS=…`
 
 ## Структура
 
@@ -115,7 +130,7 @@ git push -u origin main
 
 ## Ограничения прототипа
 
-- Нет backend: заявка и подписка сохраняются только в браузере и показывают демо-подтверждение.
+- Корзина-заявка и подписка пока сохраняются только в браузере; на сервер уходит только заявка «Стать партнёром».
 - Цена партнёра скрыта визуально; при подключении backend закрытые цены нельзя отдавать без авторизации.
 - «Профиль» и правовые документы ведут на https://apexwolt-b2b-preview.netlify.app.
 - У 198 из 264 товаров пока нет собственного фото. Часть исходных PNG тяжёлые (каталог ~20 МБ) — стоит сжать в WebP.
