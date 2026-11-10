@@ -126,6 +126,16 @@ assets/video/hero.mp4     фоновый ролик главной (облегч
 tools/build-data.mjs      генератор data.js и фото
 ```
 
+## Хостинг b2b.apexwoltshop.ru (Yandex Object Storage + HTTPS)
+
+Сайт отдаётся из публичного бакета `b2b.apexwoltshop.ru` (веб-сайт, сертификат Let's Encrypt из Certificate Manager,
+продлевается сам через CNAME `_acme-challenge.b2b`). DNS в REG.RU: `b2b` CNAME `b2b.apexwoltshop.ru.website.yandexcloud.net`.
+
+```bash
+git push origin main
+node tools/deploy-static.mjs origin/main   # загрузить опубликованную ревизию в бакет (--dry — только показать)
+```
+
 ## Публикация на GitHub
 
 ```bash
