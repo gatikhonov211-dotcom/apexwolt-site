@@ -1,30 +1,49 @@
-// Хранение заявок на регистрацию партнёра. Сейчас — локальный JSON (backend/data, в .gitignore:
-// там персональные данные). В Yandex Cloud — Object Storage (store-s3.mjs, S3_BUCKET)
-// или YDB (store-ydb.mjs, YDB_ENDPOINT + YDB_DATABASE).
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+// Данные B2B поверх хранилища kv.mjs (Object Storage в облаке, файлы backend/data/kv локально):
+//   registrations/<ИНН>.json  — заявка организации: реквизиты, контакт, статус, коэффициент
+//   users/<ключ email>.json   — доступ партнёра: email → ИНН организации (создаётся при одобрении)
+//   costs.json                — закупочная стоимость по артикулам (загружает менеджер из Excel)
+//   codes/<ключ email>.json   — одноразовые коды входа (auth.mjs)
+// Закупочная стоимость и коэффициенты никогда не попадают в публичные данные сайта.
+import { getJson, putJson, remove, listKeys } from './kv.mjs';
 
-const dataDir = () => process.env.REG_DATA_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), 'data');
-const file = () => path.join(dataDir(), 'registrations.json');
+const regKey = inn => `registrations/${inn}.json`;
+const userKey = emailKey => `users/${emailKey}.json`;
 
-const cloudStore = () => process.env.S3_BUCKET ? import('./store-s3.mjs')
-  : process.env.YDB_ENDPOINT && process.env.YDB_DATABASE ? import('./store-ydb.mjs') : null;
-
-const readAll = () => { try { return JSON.parse(fs.readFileSync(file(), 'utf8')); } catch { return []; } };
+export async function getRegistration(inn) {
+  return getJson(regKey(inn));
+}
 
 export async function findRegistrationByInn(inn) {
-  const cloud = cloudStore();
-  if (cloud) return (await cloud).findRegistrationByInn(inn);
-  return readAll().find(r => r.company.inn === inn && r.status !== 'rejected') || null;
+  const r = await getRegistration(inn);
+  return r && r.status !== 'rejected' ? r : null;
 }
 
 export async function saveRegistration(record) {
-  const cloud = cloudStore();
-  if (cloud) return (await cloud).saveRegistration(record);
-  fs.mkdirSync(dataDir(), { recursive: true });
-  const list = readAll();
-  list.push(record);
-  fs.writeFileSync(file(), JSON.stringify(list, null, 2), 'utf8');
-  return record;
+  return putJson(regKey(record.company.inn), record);
+}
+
+export async function listRegistrations() {
+  const keys = await listKeys('registrations/');
+  const list = await Promise.all(keys.map(k => getJson(k)));
+  return list.filter(Boolean).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function getUser(emailKey) {
+  return getJson(userKey(emailKey));
+}
+
+export async function saveUser(emailKey, user) {
+  return putJson(userKey(emailKey), user);
+}
+
+export async function removeUser(emailKey) {
+  return remove(userKey(emailKey));
+}
+
+export async function getCosts() {
+  return (await getJson('costs.json')) || { costs: {}, count: 0, updatedAt: null, source: null };
+}
+
+export async function saveCosts(doc) {
+  return putJson('costs.json', doc);
 }

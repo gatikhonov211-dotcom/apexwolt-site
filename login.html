@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Вход в кабинет — APEXWOLT</title>
+  <meta name="description" content="Вход в кабинет партнёра APEXWOLT по коду из письма.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/app.css?v=a12c7a06">
+</head>
+<body data-page="login">
+  <a class="skip-link" href="#main">К содержимому</a>
+  <div data-slot="header"></div>
+
+  <main id="main" class="page">
+    <nav class="breadcrumbs" aria-label="Навигация">
+      <a href="index.html">Главная</a><span aria-hidden="true">/</span><span aria-current="page">Вход</span>
+    </nav>
+
+    <div class="partner-layout">
+      <header class="partner-intro">
+        <h1>Вход в кабинет</h1>
+        <p class="category-lead">Для партнёров с одобренной заявкой и менеджеров APEXWOLT. Пароль не нужен — пришлём одноразовый код на почту.</p>
+        <p class="category-lead">Ещё не партнёр? <a class="link" href="partner.html">Оставьте заявку</a> — после проверки менеджер откроет доступ.</p>
+      </header>
+
+      <form class="partner-form auth-form" id="login-email" novalidate>
+        <div class="field">
+          <label for="lg-email">Email, указанный в заявке</label>
+          <input id="lg-email" name="email" type="email" autocomplete="email" inputmode="email" required>
+        </div>
+        <p class="form-msg" id="lg-email-msg" role="alert"></p>
+        <button type="submit" class="button button-dark button-wide">Получить код</button>
+      </form>
+
+      <form class="partner-form auth-form" id="login-code" novalidate hidden>
+        <p class="auth-sent">Код отправлен на <b id="lg-sent-to"></b>. Если письма нет пару минут — проверьте «Спам».</p>
+        <div class="field">
+          <label for="lg-code">Код из письма</label>
+          <input id="lg-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="\d{6}" required class="code-input">
+        </div>
+        <p class="form-msg" id="lg-code-msg" role="alert"></p>
+        <button type="submit" class="button button-dark button-wide">Войти</button>
+        <div class="auth-links">
+          <button type="button" class="link" id="lg-resend">Отправить код ещё раз</button>
+          <button type="button" class="link muted" id="lg-change">Другой email</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <div data-slot="footer"></div>
+
+  <script src="assets/js/config.js?v=7d4ce63d"></script>
+  <script src="assets/js/auth.js?v=2c233b87"></script>
+  <script src="assets/js/data.js?v=c843bd6d"></script>
+  <script src="assets/js/store.js?v=d574a511"></script>
+  <script src="assets/js/ui.js?v=45e5d07a"></script>
+  <script src="assets/js/login.js?v=9746a4f1"></script>
+</body>
+</html>

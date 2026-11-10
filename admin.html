@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Менеджер — APEXWOLT B2B</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/app.css?v=a12c7a06">
+</head>
+<body data-page="admin">
+  <a class="skip-link" href="#main">К содержимому</a>
+  <div data-slot="header"></div>
+
+  <main id="main" class="page">
+    <div class="account-head">
+      <div>
+        <p class="pdp-kicker">Кабинет менеджера</p>
+        <h1>Партнёры и цены</h1>
+        <p class="category-lead" id="adm-who"></p>
+      </div>
+      <button type="button" class="button button-ghost" id="adm-logout">Выйти</button>
+    </div>
+
+    <section class="admin-block" aria-labelledby="adm-reg-title">
+      <div class="block-head">
+        <h2 id="adm-reg-title">Заявки</h2>
+        <div class="admin-filter" role="group" aria-label="Фильтр заявок">
+          <button type="button" class="chip is-on" data-filter="pending">На проверке</button>
+          <button type="button" class="chip" data-filter="approved">Одобрены</button>
+          <button type="button" class="chip" data-filter="rejected">Отклонены</button>
+          <button type="button" class="chip" data-filter="all">Все</button>
+        </div>
+      </div>
+      <div id="adm-list" aria-live="polite"><p class="empty">Загружаем заявки…</p></div>
+    </section>
+
+    <section class="admin-block" aria-labelledby="adm-cost-title">
+      <div class="block-head"><h2 id="adm-cost-title">Закупочная стоимость</h2></div>
+      <div class="partner-form">
+        <p class="admin-note" id="adm-cost-meta">Загружаем…</p>
+        <p class="admin-note">Цена партнёра = закупочная стоимость × коэффициент организации, округление до рубля. Файл заменяет прежние цены целиком. Нужны колонки «Артикул» и колонка с ценой — например, «Себестоимость / Дистрибьютор» из матрицы цен.</p>
+        <div class="field">
+          <label for="adm-file">Файл Excel (.xlsx)</label>
+          <input id="adm-file" type="file" accept=".xlsx,.xls,.csv">
+        </div>
+        <div class="field" id="adm-col-wrap" hidden>
+          <label for="adm-col">Колонка с закупочной стоимостью</label>
+          <select id="adm-col" class="admin-select"></select>
+        </div>
+        <p class="form-msg" id="adm-cost-msg" role="status"></p>
+        <button type="button" class="button button-dark" id="adm-upload" disabled>Загрузить цены</button>
+      </div>
+    </section>
+  </main>
+
+  <div data-slot="footer"></div>
+
+  <script src="assets/js/config.js?v=7d4ce63d"></script>
+  <script src="assets/js/auth.js?v=2c233b87"></script>
+  <script src="assets/js/data.js?v=c843bd6d"></script>
+  <script src="assets/js/store.js?v=d574a511"></script>
+  <script src="assets/js/ui.js?v=45e5d07a"></script>
+  <script src="assets/vendor/xlsx.full.min.js"></script>
+  <script src="assets/js/admin.js?v=f3a416bc"></script>
+</body>
+</html>

@@ -51,9 +51,23 @@
     const when = p.eta ? ` · ${esc(p.eta)}` : p.lead ? ` · ${p.lead} ${plural(p.lead, 'день', 'дня', 'дней')}` : '';
     return `<span class="stock"><i></i>Под заказ${when}</span>`;
   };
+  // Строка «цена партнёра»: после входа партнёра — его цена (закупка × коэффициент считает сервер).
+  const auth = window.ApexAuth;
+  const partnerLine = p => {
+    const pp = auth ? auth.partnerPrice(p.sku) : undefined;
+    if (pp === undefined) return `${icon.lock}${p.price ? 'Цена партнёра' : 'Условия'} — <a href="login.html">после входа</a>`;
+    if (pp === null) return 'Ваша цена загружается…';
+    if (pp === false) return 'Ваша цена — по запросу';
+    return `Ваша цена <b>${money(pp)}</b>`;
+  };
   const priceBlock = p => p.price
-    ? `<strong>${money(p.price)}</strong><small>${icon.lock}Цена партнёра — после входа</small>`
-    : `<strong class="price-ask">Цена по запросу</strong><small>${icon.lock}Условия — после входа</small>`;
+    ? `<strong>${money(p.price)}</strong><small class="partner-line" data-pp="${esc(p.sku)}">${partnerLine(p)}</small>`
+    : `<strong class="price-ask">Цена по запросу</strong><small class="partner-line" data-pp="${esc(p.sku)}">${partnerLine(p)}</small>`;
+  // Цены пришли после отрисовки — обновить все строки на странице.
+  const bySku = new Map(products.map(p => [p.sku, p]));
+  document.addEventListener('apex:prices', () => {
+    document.querySelectorAll('[data-pp]').forEach(el => { const p = bySku.get(el.dataset.pp); if (p) el.innerHTML = partnerLine(p); });
+  });
 
   const productCard = (p, opts = {}) => {
     const fav = store.isFavorite(p.id), cmp = store.inCompare(p.id), qty = store.qty(p.id);
@@ -172,7 +186,7 @@
         <div class="search-results glass" id="search-results" role="listbox" hidden></div>
       </form>
       <nav class="header-icons" aria-label="Личное">
-        <a class="hicon" href="${MAIN_SITE}/account.html">${icon.user}<span>Профиль</span></a>
+        <a class="hicon" href="${auth ? auth.homeUrl() : 'login.html'}">${icon.user}<span>${auth?.isManager ? 'Менеджер' : auth?.isPartner ? 'Кабинет' : 'Войти'}</span></a>
         <button type="button" class="hicon" data-open="compare">${icon.compare}<span>Сравнение</span><b data-count="compare" hidden></b></button>
         <button type="button" class="hicon" data-open="favorites">${icon.heart}<span>Избранное</span><b data-count="favorites" hidden></b></button>
         <button type="button" class="hicon" data-open="request">${icon.request}<span>Заявка</span><b data-count="request" hidden></b></button>
@@ -187,6 +201,7 @@
     <button type="button" data-focus-search>${icon.search}<span>Поиск</span></button>
     <button type="button" data-open="favorites">${icon.heart}<span>Избранное</span><b data-count="favorites" hidden></b></button>
     <button type="button" data-open="request">${icon.request}<span>Заявка</span><b data-count="request" hidden></b></button>
+    <a href="${auth ? auth.homeUrl() : 'login.html'}">${icon.user}<span>${auth?.isManager ? 'Менеджер' : auth?.isPartner ? 'Кабинет' : 'Войти'}</span></a>
   </nav>`;
 
   const footer = `
@@ -598,6 +613,6 @@
   });
   syncCounts();
 
-  window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, docsBlock, priceKind, priceKinds, reduceMotion, PLACEHOLDER };
+  window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, partnerLine, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, docsBlock, priceKind, priceKinds, reduceMotion, PLACEHOLDER };
   document.querySelectorAll('[data-docs-block]').forEach(el => { el.outerHTML = docsBlock(); });
 })();

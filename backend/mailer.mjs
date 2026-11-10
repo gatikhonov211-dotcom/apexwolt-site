@@ -93,3 +93,30 @@ export async function notifyRegistration(r) {
   for (const x of results) if (x.status === 'rejected') console.error('[mail]', x.reason?.message);
   return results.every(x => x.status === 'fulfilled' && x.value);
 }
+
+const siteUrl = () => (process.env.SITE_URL || 'https://b2b.apexwoltshop.ru').replace(/\/+$/, '');
+
+export async function sendLoginCode(email, code) {
+  return send({
+    to: email,
+    subject: `Код входа APEXWOLT B2B: ${code}`,
+    text: `Код для входа в кабинет APEXWOLT B2B: ${code}\n\nКод действует 10 минут. Если вы не запрашивали вход, просто удалите это письмо.`,
+    html: layout('Код для входа', `<p style="font-size:15px;line-height:1.5">Введите этот код на странице входа:</p>
+<p style="font-size:32px;letter-spacing:.3em;font-weight:bold;margin:8px 0 16px">${esc(code)}</p>
+<p style="font-size:13px;color:#667;line-height:1.5">Код действует 10 минут. Если вы не запрашивали вход, просто удалите это письмо.</p>`)
+  });
+}
+
+export async function sendAccessGranted(r) {
+  const link = `${siteUrl()}/login.html`;
+  return send({
+    to: r.contact.email,
+    replyTo: managers()[0],
+    subject: 'Доступ к партнёрским ценам открыт — APEXWOLT',
+    text: `Здравствуйте, ${r.contact.name}!\n\nЗаявка ${r.id} для «${r.company.name}» одобрена. Войдите в кабинет по адресу ${link} — укажите ${r.contact.email}, и мы пришлём код. После входа в каталоге будут видны ваши партнёрские цены.\n\nAPEXWOLT · idea@apexwolt.ru · +7 (933) 023-88-43`,
+    html: layout('Доступ открыт', `<p style="font-size:15px;line-height:1.5">Здравствуйте, ${esc(r.contact.name)}!</p>
+<p style="font-size:15px;line-height:1.5">Заявка <b>${esc(r.id)}</b> для «${esc(r.company.name)}» одобрена. После входа в каталоге будут видны ваши партнёрские цены.</p>
+<p style="margin:20px 0"><a href="${esc(link)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-size:15px">Войти в кабинет</a></p>
+<p style="font-size:13px;color:#667;line-height:1.5">Для входа укажите ${esc(r.contact.email)} — мы пришлём одноразовый код.<br>APEXWOLT · idea@apexwolt.ru · +7 (933) 023-88-43</p>`)
+  });
+}

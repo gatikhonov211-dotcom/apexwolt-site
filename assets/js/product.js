@@ -2,7 +2,7 @@
    полный список характеристик, похожие товары из той же категории и направления. */
 (function () {
   const { products, categories, novelties } = window.APEX_DATA;
-  const { esc, money, icon, summary, specPair, stockLabel, productCard, imageOf, sectionOf, priceKind } = window.ApexUI;
+  const { esc, money, icon, summary, specPair, stockLabel, productCard, imageOf, sectionOf, priceKind, partnerLine } = window.ApexUI;
   const store = window.ApexStore;
   const root = document.getElementById('product-root');
   const crumbs = document.getElementById('breadcrumbs');
@@ -73,11 +73,13 @@
           <div class="price price-lg">
             ${p.price ? `<span class="muted">${priceKind(p)}</span><strong>${money(p.price)}</strong>` : '<strong class="price-ask">Цена по запросу</strong><span class="muted">Менеджер пришлёт условия в ответ на заявку</span>'}
           </div>
-          <div class="locked">
+          ${window.ApexAuth?.isPartner
+            ? `<div class="locked is-open"><div><b>Цена партнёра</b><span data-pp="${esc(p.sku)}">${partnerLine(p)}</span></div></div>`
+            : `<div class="locked">
             ${icon.lock}
             <div><b>Цена партнёра и маржинальность</b><span>Откроются после входа в кабинет организации</span></div>
-            <a class="link" href="https://apexwolt-b2b-preview.netlify.app/account.html">Войти</a>
-          </div>
+            <a class="link" href="login.html">Войти</a>
+          </div>`}
           <div class="pdp-buttons">
             ${qty ? `<div class="qty qty-lg" role="group" aria-label="Количество в заявке">
                 <button type="button" data-step="-1" aria-label="Меньше">−</button>

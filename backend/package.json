@@ -3,7 +3,6 @@
   "private": true,
   "description": "API регистрации партнёров для Yandex Cloud Function (entrypoint index.handler)",
   "dependencies": {
-    "nodemailer": "^10.1.1",
-    "ydb-sdk": "^5.11.1"
+    "nodemailer": "^10.1.1"
   }
 }

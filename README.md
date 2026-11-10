@@ -17,6 +17,9 @@ B2B-каталога. Код и тексты написаны заново; то
 | `product.html` | Карточка товара: `?id=apexwolt-7-65-05` |
 | `about.html` | О компании: производство, поддержка партнёров, как работаем, бренды, видео, реквизиты (`#contacts`) |
 | `partner.html` | «Стать партнёром»: заявка с автозаполнением реквизитов по ИНН |
+| `login.html` | Вход по одноразовому коду из письма (партнёр после одобрения, менеджер) |
+| `account.html` | Кабинет партнёра: организация, позиции с партнёрской ценой |
+| `admin.html` | Кабинет менеджера: одобрение заявок с коэффициентом, загрузка закупочной стоимости из Excel |
 | `documents.html` | Сертификаты и декларации о соответствии (PDF в `assets/docs/`), ссылка в подвале |
 
 Общие части (шапка с мега-меню и поиском, подвал, избранное, сравнение, заявка, видеоплеер)
@@ -78,11 +81,15 @@ npm run api                            # API на http://localhost:8787
 npm test                               # тесты API
 ```
 
-- `backend/api.mjs` — обработчик (совместим с Yandex Cloud Function + API Gateway):
-  `GET /api/company?inn=`, `POST /api/register`, `GET /api/health`. CORS — только сайты из `ALLOWED_ORIGINS`,
-  ограничение 20 запросов ИНН в минуту с адреса, кеш ответов.
-- `backend/store.mjs` — заявки в `backend/data/registrations.json` (не в Git); в облаке — приватный бакет Object Storage
-  (`store-s3.mjs`, `S3_BUCKET`, файл `registrations/<ИНН>.json`) или YDB (`store-ydb.mjs`).
+- `backend/api.mjs` — обработчик (совместим с Yandex Cloud Function + API Gateway), список маршрутов — в начале файла:
+  заявка, вход по коду (`auth/request`, `auth/verify`), `me`, `prices`, `admin/*`. CORS — только сайты из `ALLOWED_ORIGINS`.
+- `backend/auth.mjs` — коды входа (6 цифр, 10 минут, 5 попыток, хранится только HMAC) и токен сессии на 30 дней (`AUTH_SECRET`).
+  Права перепроверяются при каждом запросе: менеджер — адрес из `MANAGER_EMAILS`, партнёр — одобренная организация.
+- Цена партнёра = закупочная стоимость × коэффициент организации, считается на сервере (`GET /api/prices`).
+  Закупочная стоимость и коэффициенты в браузер партнёра не попадают; Excel менеджер загружает в `admin.html`
+  (разбор в браузере — SheetJS 0.18.5, `assets/vendor/`, Apache-2.0).
+- `backend/kv.mjs` + `store.mjs` — данные: в облаке приватный бакет Object Storage (`S3_BUCKET`), локально `backend/data/kv` (не в Git):
+  `registrations/<ИНН>.json`, `users/<ключ email>.json`, `codes/…`, `costs.json`.
 - `backend/mailer.mjs` — письмо менеджерам (`MANAGER_EMAILS`, ответ уходит клиенту) и подтверждение клиенту.
   Отправка по SMTP (`SMTP_*`, Yandex Cloud Postbox или почтовый ящик); `MAIL_MOCK=1` — письма в `backend/data/outbox/*.eml`.
   Адреса и пароли — только в `backend/.env` / переменных функции.
@@ -94,7 +101,7 @@ npm test                               # тесты API
 | --- | --- |
 | Cloud Function (nodejs22, entrypoint `index.handler`) | `apex-api` |
 | API Gateway (`backend/gateway.yaml`) | `apex-api-gw` |
-| Lockbox (`DADATA_TOKEN`) | `apex-api-secrets` |
+| Lockbox (`DADATA_TOKEN`, `SMTP_PASS`, `AUTH_SECRET`) | `apex-api-secrets` |
 | Object Storage, приватный бакет заявок | `apexwolt-b2b-registrations` |
 | Сервисный аккаунт (storage.editor, lockbox.payloadViewer, functions.functionInvoker) | `apex-api-sa` |
 
