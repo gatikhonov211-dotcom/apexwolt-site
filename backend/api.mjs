@@ -14,11 +14,14 @@
 //   POST /api/admin/registrations/<ИНН>      — {action: approve|reject|update, coefficient}
 //   GET  /api/admin/costs                    — сведения о загруженной закупочной стоимости
 //   PUT  /api/admin/costs    {costs, source} — загрузить закупочную стоимость {артикул: цена}
+//   POST /api/orders                         — заявка на товары из корзины (гость или партнёр; цены партнёра считает сервер)
+//   GET  /api/admin/orders                   — заявки на товары (менеджер)
+//   POST /api/admin/orders/<номер>  {status} — статус заявки: new | work | done
 import crypto from 'node:crypto';
 import { isValidInn } from './inn.mjs';
 import { findPartyByInn, MOCK_PARTIES } from './dadata.mjs';
-import { findRegistrationByInn, getRegistration, saveRegistration, listRegistrations, getUser, saveUser, removeUser, getCosts, saveCosts } from './store.mjs';
-import { notifyRegistration, sendLoginCode, sendAccessGranted } from './mailer.mjs';
+import { findRegistrationByInn, getRegistration, saveRegistration, listRegistrations, getUser, saveUser, removeUser, getCosts, saveCosts, saveOrder, listOrders, findOrder } from './store.mjs';
+import { notifyRegistration, sendLoginCode, sendAccessGranted, notifyOrder } from './mailer.mjs';
 import { normalizeEmail, emailKey, isManager, issueCode, checkCode, signToken, verifyToken, passwordProblem, hasPassword, setPassword, checkPassword, removePassword } from './auth.mjs';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -248,6 +251,62 @@ const routes = {
     return { ok: true, registration: reg };
   },
 
+  'POST orders': async ({ event, body, ip }) => {
+    if (tooMany(ip, 'order', 5)) throw httpError(429, 'Слишком много заявок подряд — подождите минуту');
+    const s = await sessionOf(event);
+    const partner = s?.role === 'partner' ? s : null;
+    const errors = {};
+    const items = Array.isArray(body.items) ? body.items.slice(0, 300).map(it => ({
+      sku: clean(it?.sku).slice(0, 60), title: clean(it?.title).slice(0, 300), qty: Math.floor(Number(it?.qty)),
+      retail: Number(it?.retail) > 0 ? Math.round(Number(it.retail)) : null,
+      retailKind: ['МРЦ', 'РРЦ'].includes(it?.retailKind) ? it.retailKind : null
+    })).filter(it => it.sku && it.qty >= 1 && it.qty <= 9999) : [];
+    if (!items.length) errors.items = 'В заявке нет позиций';
+    // Партнёр: организация и ИНН — из его одобренной заявки, не из формы.
+    const company = partner ? { name: partner.registration.company.name, inn: partner.registration.company.inn }
+      : { name: clean(body.company).slice(0, 300), inn: clean(body.inn) };
+    if (!partner && company.name.length < 2) errors.company = 'Укажите организацию';
+    if (!partner && !isValidInn(company.inn)) errors.inn = 'Проверьте ИНН: 10 цифр для организации или 12 для ИП';
+    const contact = { name: clean(body.name).slice(0, 200), phone: clean(body.phone).slice(0, 40), email: normalizeEmail(body.email) };
+    if (contact.name.length < 2) errors.name = 'Укажите контактное лицо';
+    if (!PHONE_RE.test(contact.phone)) errors.phone = 'Проверьте телефон';
+    if (!EMAIL_RE.test(contact.email)) errors.email = 'Проверьте email';
+    if (body.consent !== true) errors.consent = 'Нужно согласие на обработку данных';
+    if (Object.keys(errors).length) throw httpError(422, Object.values(errors)[0], { errors });
+    // Цены партнёра — только с сервера: закупочная стоимость × коэффициент организации.
+    const k = partner?.registration.coefficient || null;
+    const { costs } = k ? await getCosts() : { costs: {} };
+    for (const it of items) it.partnerPrice = k && costs[it.sku] ? Math.round(costs[it.sku] * k) : null;
+    const total = items.reduce((sum, it) => sum + (it.partnerPrice ?? it.retail ?? 0) * it.qty, 0);
+    const now = new Date();
+    const order = {
+      id: `AW-${now.toISOString().slice(2, 10).replace(/-/g, '')}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`,
+      createdAt: now.toISOString(), status: 'new', partner: Boolean(partner), coefficient: k,
+      company, contact, comment: clean(body.comment).slice(0, 1000),
+      items, total, consent: { at: now.toISOString(), ip }
+    };
+    await saveOrder(order);
+    console.log(`[order] ${order.id}: ${items.length} поз., партнёр: ${order.partner}`);
+    const mailed = await notifyOrder(order).catch(e => { console.error('[mail]', e.message); return false; });
+    return { httpStatus: 201, ok: true, id: order.id, total, partner: order.partner, mailed };
+  },
+
+  'GET admin/orders': async ({ event }) => {
+    await requireRole(event, 'manager');
+    return { ok: true, orders: (await listOrders()).map(({ key, consent, ...o }) => o) };
+  },
+
+  'POST admin/orders/:id': async ({ event, body, param }) => {
+    const s = await requireRole(event, 'manager');
+    if (!['new', 'work', 'done'].includes(body.status)) throw httpError(422, 'Неизвестный статус');
+    const order = await findOrder(param);
+    if (!order) throw httpError(404, 'Заявка не найдена');
+    Object.assign(order, { status: body.status, statusBy: s.email, statusAt: new Date().toISOString() });
+    await saveOrder(order);
+    const { key, consent, ...rest } = order;
+    return { ok: true, order: rest };
+  },
+
   'GET admin/costs': async ({ event }) => {
     await requireRole(event, 'manager');
     const { count, updatedAt, source, updatedBy } = await getCosts();
@@ -276,6 +335,8 @@ function matchRoute(method, route) {
   if (routes[`${method} ${route}`]) return { fn: routes[`${method} ${route}`] };
   const m = route.match(/^admin\/registrations\/(\d{10}|\d{12})$/);
   if (m && routes[`${method} admin/registrations/:inn`]) return { fn: routes[`${method} admin/registrations/:inn`], param: m[1] };
+  const o = route.match(/^admin\/orders\/(AW-\d{6}-[0-9A-F]{4})$/);
+  if (o && routes[`${method} admin/orders/:id`]) return { fn: routes[`${method} admin/orders/:id`], param: o[1] };
   return null;
 }
 

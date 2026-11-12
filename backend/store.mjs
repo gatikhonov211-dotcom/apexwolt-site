@@ -47,3 +47,21 @@ export async function getCosts() {
 export async function saveCosts(doc) {
   return putJson('costs.json', doc);
 }
+
+// ---------- заявки на товары ----------
+//   orders/<дата-время>_<номер>.json — заявка из корзины сайта (ключ с датой — список сразу по порядку)
+const orderKey = o => `orders/${o.createdAt.replace(/[:.]/g, '-')}_${o.id}.json`;
+
+export async function saveOrder(order) {
+  return putJson(order.key || (order.key = orderKey(order)), order);
+}
+
+export async function listOrders(limit = 300) {
+  const keys = (await listKeys('orders/')).sort().reverse().slice(0, limit);
+  return (await Promise.all(keys.map(k => getJson(k)))).filter(Boolean);
+}
+
+export async function findOrder(id) {
+  const key = (await listKeys('orders/')).find(k => k.endsWith(`_${id}.json`));
+  return key ? getJson(key) : null;
+}

@@ -120,3 +120,51 @@ export async function sendAccessGranted(r) {
 <p style="font-size:13px;color:#667;line-height:1.5">Для входа укажите ${esc(r.contact.email)} — мы пришлём одноразовый код.<br>APEXWOLT · idea@apexwolt.ru · +7 (933) 023-88-43</p>`)
   });
 }
+
+// ---------- заявка на товары из корзины ----------
+const rub = n => `${Math.round(n).toLocaleString('ru-RU')} ₽`;
+const orderLines = o => o.items.map((it, i) => {
+  const price = it.partnerPrice ?? it.retail;
+  return {
+    n: i + 1, sku: it.sku, title: it.title || it.sku, qty: it.qty,
+    price: price ? rub(price) : 'по запросу', sum: price ? rub(price * it.qty) : '—',
+    note: it.partnerPrice != null ? `цена партнёра${it.retail ? `, ${it.retailKind || 'РРЦ'} ${rub(it.retail)}` : ''}` : it.retail ? (it.retailKind || 'РРЦ') : ''
+  };
+});
+const totalLabel = o => o.partner ? 'Итого по ценам партнёра' : 'Итого по МРЦ/РРЦ';
+const orderTable = o => `<table style="border-collapse:collapse;font-size:13px;width:100%">
+<tr style="color:#667;text-align:left"><th style="padding:6px 6px 6px 0">Товар</th><th style="padding:6px">Кол-во</th><th style="padding:6px">Цена</th><th style="padding:6px 0 6px 6px;text-align:right">Сумма</th></tr>
+${orderLines(o).map(l => `<tr style="border-top:1px solid #eee"><td style="padding:8px 6px 8px 0">${esc(l.title)}<br><span style="color:#889">Арт. ${esc(l.sku)}${l.note ? ` · ${esc(l.note)}` : ''}</span></td><td style="padding:8px 6px;white-space:nowrap">${l.qty} шт.</td><td style="padding:8px 6px;white-space:nowrap">${esc(l.price)}</td><td style="padding:8px 0 8px 6px;text-align:right;white-space:nowrap">${esc(l.sum)}</td></tr>`).join('')}
+<tr style="border-top:2px solid #111"><td colspan="3" style="padding:10px 6px 0 0;font-weight:bold">${totalLabel(o)}</td><td style="padding:10px 0 0 6px;text-align:right;font-weight:bold;white-space:nowrap">${rub(o.total)}</td></tr></table>`;
+const orderText = o => orderLines(o).map(l => `${l.n}. ${l.title} (арт. ${l.sku}) — ${l.qty} шт. × ${l.price} = ${l.sum}${l.note ? ` [${l.note}]` : ''}`).join('\n') + `\n\n${totalLabel(o)}: ${rub(o.total)}`;
+const orderInfo = o => [
+  ['Организация', o.company.name], ['ИНН', o.company.inn], ['Контактное лицо', o.contact.name],
+  ['Телефон', o.contact.phone], ['Email', o.contact.email], ['Комментарий', o.comment],
+  ['Партнёр', o.partner ? `да, коэффициент ${String(o.coefficient ?? '—').replace('.', ',')}` : 'нет (гость сайта)'],
+  ['Дата', new Date(o.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + ' (МСК)']
+].filter(([, v]) => v);
+
+// Письмо менеджерам и подтверждение клиенту. Заявка уже сохранена — сбой почты только пишем в журнал.
+export async function notifyOrder(o) {
+  const info = orderInfo(o);
+  const jobs = [];
+  if (managers().length) jobs.push(send({
+    to: managers(), replyTo: o.contact.email,
+    subject: `Заявка ${o.id} от ${o.company.name}: ${o.items.length} поз., ${rub(o.total)}`,
+    text: `Новая заявка на товары ${o.id}\n\n${info.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\n${orderText(o)}\n\nОтветить клиенту можно прямо на это письмо. Все заявки: ${siteUrl()}/admin.html`,
+    html: layout(`Заявка ${o.id}`, `<table style="border-collapse:collapse;font-size:14px;margin-bottom:18px">${info.map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0;color:#667;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="padding:4px 0">${esc(v)}</td></tr>`).join('')}</table>${orderTable(o)}
+<p style="margin:20px 0 0;font-size:13px;color:#667">Ответить клиенту можно прямо на это письмо. Все заявки — <a href="${esc(siteUrl())}/admin.html">кабинет менеджера</a>.</p>`)
+  }));
+  else console.warn('[mail] MANAGER_EMAILS не задан — менеджер не получит заявку');
+  jobs.push(send({
+    to: o.contact.email, replyTo: managers()[0],
+    subject: `Заявка ${o.id} принята — APEXWOLT`,
+    text: `Здравствуйте, ${o.contact.name}!\n\nЗаявка ${o.id} для «${o.company.name}» принята. Менеджер подтвердит наличие, цены и сроки.\n\n${orderText(o)}\n\nОтправка заявки не является договором или оплатой.\n\nAPEXWOLT · idea@apexwolt.ru · +7 (933) 023-88-43`,
+    html: layout('Заявка принята', `<p style="font-size:15px;line-height:1.5">Здравствуйте, ${esc(o.contact.name)}!</p>
+<p style="font-size:15px;line-height:1.5">Заявка <b>${esc(o.id)}</b> для «${esc(o.company.name)}» принята. Менеджер подтвердит наличие, цены и сроки.</p>${orderTable(o)}
+<p style="margin-top:18px;font-size:13px;color:#667;line-height:1.5">Отправка заявки не является договором или оплатой.<br>APEXWOLT · idea@apexwolt.ru · +7 (933) 023-88-43</p>`)
+  }));
+  const results = await Promise.allSettled(jobs);
+  for (const x of results) if (x.status === 'rejected') console.error('[mail]', x.reason?.message);
+  return results.every(x => x.status === 'fulfilled' && x.value);
+}

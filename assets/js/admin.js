@@ -100,6 +100,78 @@
   list.addEventListener('submit', e => { e.preventDefault(); act(e.target, e.submitter?.dataset.action || e.target.querySelector('[type=submit]').dataset.action); });
   list.addEventListener('click', e => { const b = e.target.closest('button[type=button][data-action]'); if (b) act(b.form, b.dataset.action); });
 
+  /* ---------- заявки на товары ---------- */
+  const ordList = document.getElementById('adm-orders');
+  const OSTATUS = { new: 'Новая', work: 'В работе', done: 'Закрыта' };
+  let orders = [];
+  let ofilter = 'new';
+
+  function renderOrders() {
+    const shown = ofilter === 'all' ? orders : orders.filter(o => o.status === ofilter);
+    document.querySelectorAll('[data-ofilter]').forEach(b => {
+      const n = b.dataset.ofilter === 'all' ? orders.length : orders.filter(o => o.status === b.dataset.ofilter).length;
+      b.textContent = `${b.textContent.replace(/\s·\s\d+$/, '')} · ${n}`;
+    });
+    if (!shown.length) {
+      ordList.innerHTML = `<div class="empty empty-wide"><b>${ofilter === 'new' ? 'Новых заявок нет' : 'Здесь пока пусто'}</b><span>Заявки из корзины сайта появятся здесь и придут на почту.</span></div>`;
+      return;
+    }
+    ordList.innerHTML = shown.map(o => `
+      <article class="admin-reg admin-order" data-order="${esc(o.id)}">
+        <div class="admin-reg-main">
+          <p class="admin-reg-top"><span class="admin-status is-${o.status === 'new' ? 'pending' : o.status === 'work' ? 'approved' : 'rejected'}">${OSTATUS[o.status] || esc(o.status)}</span><span>${esc(o.id)} · ${when(o.createdAt)}${o.partner ? ' · партнёр' : ' · гость'}</span></p>
+          <h3>${esc(o.company.name)} <span class="admin-order-sum">${money(o.total)}</span></h3>
+          <p class="admin-reg-meta">ИНН ${esc(o.company.inn)}${o.partner && o.coefficient ? ` · коэффициент ${coef(o.coefficient)}` : ''}</p>
+          <p class="admin-reg-contact"><b>${esc(o.contact.name)}</b> · <a class="link" href="mailto:${esc(o.contact.email)}">${esc(o.contact.email)}</a> · <a class="link" href="tel:${esc(o.contact.phone.replace(/[^\d+]/g, ''))}">${esc(o.contact.phone)}</a></p>
+          ${o.comment ? `<p class="admin-reg-comment">${esc(o.comment)}</p>` : ''}
+          <ul class="admin-order-items">${o.items.map(it => {
+            const price = it.partnerPrice ?? it.retail;
+            return `<li><span>${esc(it.title || it.sku)} <small>арт. ${esc(it.sku)}</small></span><span>${it.qty} шт. × ${price ? money(price) : 'по запросу'}${it.partnerPrice != null ? ' <small>партнёр</small>' : it.retail ? ` <small>${esc(it.retailKind || 'РРЦ')}</small>` : ''}</span></li>`;
+          }).join('')}</ul>
+          ${o.statusBy ? `<p class="admin-reg-meta">Статус: ${esc(o.statusBy)}, ${when(o.statusAt)}</p>` : ''}
+        </div>
+        <div class="admin-reg-actions">
+          ${Object.keys(OSTATUS).filter(k => k !== o.status).map(k => `<button type="button" class="button ${k === 'work' ? 'button-dark' : 'button-ghost'}" data-ostatus="${k}">${k === 'new' ? 'Вернуть в новые' : k === 'work' ? 'Взять в работу' : 'Закрыть'}</button>`).join('')}
+          <p class="form-msg" role="status"></p>
+        </div>
+      </article>`).join('');
+  }
+
+  async function loadOrders() {
+    try {
+      orders = (await auth.api('/api/admin/orders')).orders;
+      renderOrders();
+    } catch (err) {
+      if (fail(err)) return;
+      ordList.innerHTML = `<div class="empty empty-wide"><b>Не удалось загрузить заявки</b><span>${esc(err.message)}</span><button type="button" class="button button-dark" id="adm-oretry">Повторить</button></div>`;
+      document.getElementById('adm-oretry').addEventListener('click', loadOrders);
+    }
+  }
+
+  document.querySelectorAll('[data-ofilter]').forEach(b => b.addEventListener('click', () => {
+    ofilter = b.dataset.ofilter;
+    document.querySelectorAll('[data-ofilter]').forEach(x => { x.classList.toggle('is-on', x === b); x.setAttribute('aria-pressed', x === b); });
+    renderOrders();
+  }));
+
+  ordList.addEventListener('click', async e => {
+    const b = e.target.closest('[data-ostatus]');
+    if (!b) return;
+    const card = b.closest('[data-order]');
+    const msg = card.querySelector('.form-msg');
+    card.querySelectorAll('button').forEach(x => { x.disabled = true; });
+    try {
+      const json = await auth.api(`/api/admin/orders/${card.dataset.order}`, { method: 'POST', body: { status: b.dataset.ostatus } });
+      Object.assign(orders.find(o => o.id === json.order.id), json.order);
+      renderOrders();
+      window.ApexUI.toast(`Заявка ${json.order.id}: ${OSTATUS[json.order.status].toLowerCase()}`);
+    } catch (err) {
+      if (fail(err)) return;
+      card.querySelectorAll('button').forEach(x => { x.disabled = false; });
+      msg.textContent = err.message; msg.className = 'form-msg is-error';
+    }
+  });
+
   /* ---------- закупочная стоимость ---------- */
   const meta = document.getElementById('adm-cost-meta');
   const fileInput = document.getElementById('adm-file');
@@ -198,6 +270,7 @@
     }
   });
 
+  loadOrders();
   loadList();
   loadMeta();
 })();

@@ -178,3 +178,37 @@ test('Менеджер одобряет заявку, партнёр входи�
   assert.equal((await call('GET', '/api/prices', { token: partner.json.token })).statusCode, 401);
   assert.equal((await pw('buyer@example.ru', 'Secret-pass-1')).statusCode, 401);
 });
+
+test('Заявка на товары: гость, партнёр (цены считает сервер), список и статус у менеджера', async () => {
+  const outbox = path.join(process.env.REG_DATA_DIR, 'outbox');
+  const manager = (await login('manager1@example.com')).json.token;
+  const form = { name: 'Иван Петров', phone: '+7 900 000-00-00', email: 'buyer@example.ru', consent: true };
+  const items = [{ sku: '7/14/04', title: 'ДА-16,8-45', qty: 2, retail: 5190, retailKind: 'РРЦ' }, { sku: 'X-1', title: 'Без закупки', qty: 1, retail: 1000, retailKind: 'МРЦ' }];
+
+  assert.equal((await call('POST', '/api/orders', { body: { ...form, items, company: 'ООО Гость', inn: '123' } })).statusCode, 422, 'неверный ИНН');
+  assert.equal((await call('POST', '/api/orders', { body: { ...form, items, company: 'ООО Гость', inn: '7707083893', consent: false } })).statusCode, 422, 'без согласия');
+  const before = fs.readdirSync(outbox).length;
+  const guest = await call('POST', '/api/orders', { body: { ...form, items, company: 'ООО Гость', inn: '7707083893' } });
+  assert.equal(guest.statusCode, 201);
+  assert.match(guest.json.id, /^AW-\d{6}-[0-9A-F]{4}$/);
+  assert.equal(guest.json.total, 5190 * 2 + 1000);
+  assert.equal(fs.readdirSync(outbox).length, before + 2, 'письмо менеджерам и подтверждение клиенту');
+
+  // партнёр: снова одобрен, цена из закупки × коэффициент, организация — из кабинета, а не из формы
+  await call('POST', '/api/admin/registrations/3817050540', { token: manager, body: { action: 'approve', coefficient: '1,2' } });
+  const partner = (await login('buyer@example.ru')).json.token;
+  const p = await call('POST', '/api/orders', { token: partner, body: { ...form, items: [{ ...items[0], retail: 1 }, items[1]], company: 'Подмена', inn: '7707083893' } });
+  assert.equal(p.statusCode, 201);
+  assert.equal(p.json.partner, true);
+  assert.equal(p.json.total, Math.round(3118.75 * 1.2) * 2 + 1000, 'цена партнёра с сервера, без закупки — по МРЦ/РРЦ');
+
+  assert.equal((await call('GET', '/api/admin/orders', { token: partner })).statusCode, 403);
+  const list = await call('GET', '/api/admin/orders', { token: manager });
+  assert.equal(list.statusCode, 200);
+  const mine = list.json.orders.find(o => o.id === p.json.id);
+  assert.equal(mine.company.inn, '3817050540');
+  assert.equal(mine.consent, undefined);
+  const st = await call('POST', `/api/admin/orders/${p.json.id}`, { token: manager, body: { status: 'work' } });
+  assert.equal(st.json.order.status, 'work');
+  assert.equal((await call('POST', `/api/admin/orders/${p.json.id}`, { token: manager, body: { status: 'x' } })).statusCode, 422);
+});

@@ -476,10 +476,11 @@
           <button type="submit" class="button button-dark button-wide">Отправить менеджеру</button>
         </form>`;
     },
-    sent(id) {
-      return `<h2 id="drawer-title">Заявка сформирована</h2>
+    sent({ id, email, mailed }) {
+      return `<h2 id="drawer-title">Заявка отправлена</h2>
         <div class="empty is-success">${icon.check}<p class="empty-title">№ ${esc(id)}</p>
-        <p>Это демонстрационный режим: заявка сохранена только в этом браузере и менеджеру пока не отправлена. Канал передачи (почта, Telegram или CRM) подключается на этапе backend.</p>
+        <p>Заявка передана менеджеру APEXWOLT — он подтвердит наличие, цены и сроки.${mailed ? ` Копия заявки отправлена на ${esc(email)}.` : ''}</p>
+        <p class="hint">Отправка заявки не является договором или оплатой. Вопросы — +7 (933) 023-88-43, idea@apexwolt.ru.</p>
         <button type="button" class="button button-ghost" data-close>Готово</button></div>`;
     }
   };
@@ -570,15 +571,36 @@
       bad.focus();
       return;
     }
-    const id = `AW-${Date.now().toString(36).toUpperCase().slice(-6)}`;
-    try {
-      const log = JSON.parse(localStorage.getItem('apx-sent') || '[]');
-      log.push({ id, at: new Date().toISOString(), items: store.request() });
-      localStorage.setItem('apx-sent', JSON.stringify(log));
-    } catch { /* без истории */ }
-    store.clearRequest();
-    drawerBody.innerHTML = views.sent(id);
-    drawerKind = 'sent';
+    // Заявка уходит на сервер: он сохраняет её, пишет менеджерам и клиенту. Цены партнёра сервер считает сам —
+    // из браузера передаются только артикулы, количество и МРЦ/РРЦ для справки.
+    if (!auth) { msg.textContent = 'Отправка временно недоступна — позвоните +7 (933) 023-88-43.'; return; }
+    const f = form.elements;
+    const body = {
+      items: store.request().map(r => { const p = store.byId(r.id); return { sku: p.sku, title: p.title, qty: r.qty, retail: p.price || null, retailKind: p.price ? priceKind(p) : null }; }),
+      company: f.company.value.trim(), inn: f.inn.value.trim(), name: f.name.value.trim(),
+      phone: f.phone.value.trim(), email: f.email.value.trim(), comment: f.comment.value.trim(), consent: f.consent.checked
+    };
+    const submit = form.querySelector('[type=submit]');
+    form.querySelectorAll('input, textarea, button').forEach(x => { x.disabled = true; });
+    submit.textContent = 'Отправляем…';
+    msg.textContent = '';
+    drawerKind = 'sending'; // пока идёт отправка, корзина не перерисовывает форму
+    auth.api('/api/orders', { method: 'POST', body })
+      .then(json => {
+        drawerKind = 'sent';
+        store.clearRequest();
+        drawerBody.innerHTML = views.sent({ id: json.id, email: body.email, mailed: json.mailed });
+      })
+      .catch(err => {
+        drawerKind = 'request';
+        form.querySelectorAll('input, textarea, button').forEach(x => { x.disabled = false; });
+        form.querySelectorAll('[readonly]').forEach(x => { x.disabled = false; });
+        submit.textContent = 'Отправить менеджеру';
+        msg.textContent = err.data?.errors ? err.message : `${err.message}. Состав заявки сохранён — попробуйте ещё раз или позвоните +7 (933) 023-88-43.`;
+        const field = err.data?.errors && Object.keys(err.data.errors)[0];
+        const el = field && f[field === 'consent' ? 'consent' : field];
+        if (el && el.focus) { el.classList.add('is-invalid'); el.focus(); }
+      });
   });
 
   /* ---------- общие действия карточек ---------- */
@@ -630,7 +652,7 @@
   store.onChange(() => {
     syncCounts();
     refreshCards();
-    if (drawerKind && drawerKind !== 'sent') {
+    if (drawerKind && drawerKind !== 'sent' && drawerKind !== 'sending') {
       const active = document.activeElement && document.activeElement.closest('#drawer [data-id]');
       const focusId = active && active.dataset.id;
       const isInput = document.activeElement && document.activeElement.matches('[data-qty-input]');
