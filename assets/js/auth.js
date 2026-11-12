@@ -73,5 +73,11 @@
   if (token && user?.role === 'partner') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadPrices);
     else loadPrices();
+    // Реквизиты и контакты организации (для заявки) — свежие с сервера, раз в сессию вкладки.
+    if (!sessionStorage.getItem('apex.auth.me')) api('/api/me').then(json => {
+      window.ApexAuth.updateUser(json.user);
+      try { sessionStorage.setItem('apex.auth.me', '1'); } catch { /* приватный режим */ }
+      document.dispatchEvent(new CustomEvent('apex:prices', { detail: prices }));
+    }).catch(() => { /* остаются сохранённые при входе */ });
   }
 })();

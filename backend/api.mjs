@@ -104,7 +104,7 @@ const requireRole = async (event, role) => {
 
 const publicCompany = reg => ({
   id: reg.id, status: reg.status, name: reg.company.name, inn: reg.company.inn,
-  contact: reg.contact.name, email: reg.contact.email
+  contact: reg.contact.name, position: reg.contact.position || '', email: reg.contact.email, phone: reg.contact.phone
 });
 
 const userView = async s => ({ role: s.role, email: s.email, company: s.registration ? publicCompany(s.registration) : null, hasPassword: await hasPassword(s.email) });

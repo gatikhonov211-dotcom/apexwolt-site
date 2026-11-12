@@ -75,6 +75,8 @@
   document.addEventListener('apex:prices', () => {
     document.querySelectorAll('[data-pp]').forEach(el => { const p = bySku.get(el.dataset.pp); if (p) el.innerHTML = partnerLine(p); });
     document.querySelectorAll('[data-pm]').forEach(el => { const p = bySku.get(el.dataset.pm); if (p) el.innerHTML = markupBadge(p); });
+    // Открытая заявка пересчитывается по ценам партнёра (если в форме сейчас не печатают).
+    if (window.ApexUI?.refreshRequest) window.ApexUI.refreshRequest();
   });
 
   const productCard = (p, opts = {}) => {
@@ -384,12 +386,12 @@
   let drawerKind = null;
   let lastFocus = null;
 
-  const miniRow = (p, extra = '') => `
+  const miniRow = (p, extra = '', meta = null) => `
     <li class="mini" data-id="${esc(p.id)}">
       <a href="${productUrl(p)}"><img src="${esc(imageOf(p))}" alt=""></a>
       <div class="mini-info">
         <a href="${productUrl(p)}"><b>${esc(p.title)}</b></a>${p.kit ? `<small>${esc(p.kit)}</small>` : ''}
-        <small>Артикул ${esc(p.sku)}${p.price ? ` · ${priceKind(p)} ${money(p.price)}` : ' · цена по запросу'}</small>
+        <small>Артикул ${esc(p.sku)}${meta ?? (p.price ? ` · ${priceKind(p)} ${money(p.price)}` : ' · цена по запросу')}</small>
         ${extra}
       </div>
     </li>`;
@@ -432,23 +434,42 @@
     request() {
       const rows = store.request();
       if (!rows.length) return `<h2 id="drawer-title">Заявка</h2>${empty('В заявке пока нет позиций', 'Добавьте товары из каталога — менеджер подтвердит наличие, сроки и персональные цены.')}`;
-      const total = rows.reduce((s, r) => s + store.byId(r.id).price * r.qty, 0);
-      const ask = rows.some(r => !store.byId(r.id).price);
+      // Партнёр после входа: заявка считается по его ценам (закупка × коэффициент с сервера);
+      // позиции без цены партнёра — по МРЦ/РРЦ с пометкой; «цена по запросу» в сумму не входит.
+      const partner = Boolean(auth && auth.isPartner);
+      const loading = partner && rows.some(r => auth.partnerPrice(store.byId(r.id).sku) === null);
+      const unit = p => {
+        const pp = partner ? auth.partnerPrice(p.sku) : undefined;
+        return typeof pp === 'number' ? { price: pp, own: true } : { price: p.price || 0, own: false };
+      };
+      const total = rows.reduce((s, r) => s + unit(store.byId(r.id)).price * r.qty, 0);
+      const ask = rows.some(r => !unit(store.byId(r.id)).price);
+      const retail = partner && !loading && rows.some(r => { const p = store.byId(r.id); return p.price && !unit(p).own; });
+      const meta = p => {
+        if (!partner) return null;
+        const u = unit(p);
+        if (u.own) return ` · ваша цена <b class="rq-own">${money(u.price)}</b>${p.price ? ` · ${priceKind(p)} ${money(p.price)}` : ''}`;
+        return p.price ? ` · ${priceKind(p)} ${money(p.price)}${loading ? '' : '**'}` : ' · цена по запросу';
+      };
+      const c = partner ? auth.user.company || {} : {};
+      const val = v => v ? ` value="${esc(v)}"` : '';
+      const lock = partner && c.inn ? ' readonly' : '';
       return `<h2 id="drawer-title">Заявка</h2>
         <ul class="mini-list">${rows.map(r => miniRow(store.byId(r.id), `
           <div class="qty" role="group" aria-label="Количество">
             <button type="button" data-qty="-1" aria-label="Меньше">−</button>
             <input type="number" inputmode="numeric" min="0" max="9999" value="${r.qty}" data-qty-input aria-label="Количество, шт.">
             <button type="button" data-qty="1" aria-label="Больше">+</button>
-          </div>`)).join('')}</ul>
-        <p class="total"><span>Ориентир по ${priceKinds(rows.map(r => store.byId(r.id)))}${ask ? '*' : ''}</span><b>${money(total)}</b></p>
-        <p class="hint">${ask ? '* Без позиций с ценой по запросу. ' : ''}Итоговые цены и сроки подтвердит менеджер. Отправка заявки не является договором или оплатой.</p>
+          </div>`, meta(store.byId(r.id)))).join('')}</ul>
+        <p class="total"><span>${partner ? (loading ? 'Загружаем ваши цены…' : 'Сумма по вашим ценам') : `Ориентир по ${priceKinds(rows.map(r => store.byId(r.id)))}`}${ask ? '*' : ''}</span><b>${money(total)}</b></p>
+        <p class="hint">${ask ? '* Без позиций с ценой по запросу. ' : ''}${retail ? '** Ваша цена на эту позицию ещё не загружена — в сумме учтена МРЦ/РРЦ. ' : ''}Итоговые цены и сроки подтвердит менеджер. Отправка заявки не является договором или оплатой.</p>
         <form class="request-form" id="request-form" novalidate>
-          <div class="field"><label for="rq-company">Организация</label><input id="rq-company" name="company" autocomplete="organization" required></div>
-          <div class="field"><label for="rq-inn">ИНН</label><input id="rq-inn" name="inn" inputmode="numeric" pattern="\\d{10}|\\d{12}" required></div>
-          <div class="field"><label for="rq-name">Контактное лицо</label><input id="rq-name" name="name" autocomplete="name" required></div>
-          <div class="field"><label for="rq-phone">Телефон</label><input id="rq-phone" name="phone" type="tel" autocomplete="tel" required></div>
-          <div class="field"><label for="rq-email">Email</label><input id="rq-email" name="email" type="email" autocomplete="email" required></div>
+          ${partner ? `<p class="rq-account">Данные организации подставлены из кабинета. Контакт для этой заявки можно изменить.</p>` : ''}
+          <div class="field"><label for="rq-company">Организация</label><input id="rq-company" name="company" autocomplete="organization" required${val(c.name)}${lock}></div>
+          <div class="field"><label for="rq-inn">ИНН</label><input id="rq-inn" name="inn" inputmode="numeric" pattern="\\d{10}|\\d{12}" required${val(c.inn)}${lock}></div>
+          <div class="field"><label for="rq-name">Контактное лицо</label><input id="rq-name" name="name" autocomplete="name" required${val(c.contact)}></div>
+          <div class="field"><label for="rq-phone">Телефон</label><input id="rq-phone" name="phone" type="tel" autocomplete="tel" required${val(c.phone)}></div>
+          <div class="field"><label for="rq-email">Email</label><input id="rq-email" name="email" type="email" autocomplete="email" required${val(partner ? c.email || auth.user.email : '')}></div>
           <div class="field"><label for="rq-comment">Комментарий</label><textarea id="rq-comment" name="comment" rows="2" placeholder="Сроки, адрес доставки, вопросы"></textarea></div>
           <label class="check"><input type="checkbox" name="consent" required><span>Согласен на <a href="${MAIN_SITE}/consent-personal-data.html">обработку персональных данных</a> и с <a href="${MAIN_SITE}/request-terms.html">условиями заявки</a></span></label>
           <p class="form-msg" role="alert"></p>
@@ -468,6 +489,7 @@
     drawer.classList.toggle('is-wide', kind === 'compare');
     drawerBody.innerHTML = views[kind](arg);
   };
+  const refreshRequest = () => { if (drawerKind === 'request' && !drawer.querySelector('#request-form :focus')) renderDrawer(); };
   const openDrawer = kind => {
     lastFocus = document.activeElement;
     setMenu(false);
@@ -621,6 +643,6 @@
   });
   syncCounts();
 
-  window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, priceMain, partnerLine, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, docsBlock, priceKind, priceKinds, reduceMotion, PLACEHOLDER };
+  window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, priceMain, partnerLine, refreshRequest, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, docsBlock, priceKind, priceKinds, reduceMotion, PLACEHOLDER };
   document.querySelectorAll('[data-docs-block]').forEach(el => { el.outerHTML = docsBlock(); });
 })();
