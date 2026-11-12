@@ -58,17 +58,23 @@
     if (pp === undefined) return `${icon.lock}${p.price ? 'Цена партнёра' : 'Условия'} — <a href="login.html">после входа</a>`;
     if (pp === null) return 'Ваша цена загружается…';
     if (pp === false) return 'Ваша цена — по запросу';
-    // Наценка партнёра до рекомендованной цены: (МРЦ/РРЦ − цена партнёра) / цена партнёра.
-    const markup = p.price > pp ? Math.round((p.price - pp) / pp * 100) : 0;
-    return `<span class="pp-own">Ваша цена <b>${money(pp)}</b></span>${markup ? `<span class="pp-markup" title="Наценка до ${priceKind(p)}: ${money(p.price - pp)}">наценка ${markup}%</span>` : ''}`;
+    return `<span class="pp-own">Ваша цена <b>${money(pp)}</b></span>`;
   };
+  // Наценка партнёра до рекомендованной цены: (МРЦ/РРЦ − цена партнёра) / цена партнёра. Показывается справа от основной цены.
+  const markupBadge = p => {
+    const pp = auth ? auth.partnerPrice(p.sku) : undefined;
+    const markup = typeof pp === 'number' && p.price > pp ? Math.round((p.price - pp) / pp * 100) : 0;
+    return markup ? `<span class="pp-markup" title="Наценка до ${priceKind(p)}: ${money(p.price - pp)}"><span class="pm-word">наценка </span><span class="pm-plus" aria-hidden="true">+</span>${markup}%</span>` : '';
+  };
+  const priceMain = p => `<div class="price-main"><strong>${money(p.price)}</strong><span class="pm-slot" data-pm="${esc(p.sku)}">${markupBadge(p)}</span></div>`;
   const priceBlock = p => p.price
-    ? `<strong>${money(p.price)}</strong><small class="partner-line" data-pp="${esc(p.sku)}">${partnerLine(p)}</small>`
+    ? `${priceMain(p)}<small class="partner-line" data-pp="${esc(p.sku)}">${partnerLine(p)}</small>`
     : `<strong class="price-ask">Цена по запросу</strong><small class="partner-line" data-pp="${esc(p.sku)}">${partnerLine(p)}</small>`;
   // Цены пришли после отрисовки — обновить все строки на странице.
   const bySku = new Map(products.map(p => [p.sku, p]));
   document.addEventListener('apex:prices', () => {
     document.querySelectorAll('[data-pp]').forEach(el => { const p = bySku.get(el.dataset.pp); if (p) el.innerHTML = partnerLine(p); });
+    document.querySelectorAll('[data-pm]').forEach(el => { const p = bySku.get(el.dataset.pm); if (p) el.innerHTML = markupBadge(p); });
   });
 
   const productCard = (p, opts = {}) => {
@@ -615,6 +621,6 @@
   });
   syncCounts();
 
-  window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, partnerLine, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, docsBlock, priceKind, priceKinds, reduceMotion, PLACEHOLDER };
+  window.ApexUI = { esc, money, plural, icon, summary, specPair, stockLabel, priceBlock, priceMain, partnerLine, productCard, productUrl, imageOf, toast, findProducts, sectionOf, videoBlock, docsBlock, priceKind, priceKinds, reduceMotion, PLACEHOLDER };
   document.querySelectorAll('[data-docs-block]').forEach(el => { el.outerHTML = docsBlock(); });
 })();

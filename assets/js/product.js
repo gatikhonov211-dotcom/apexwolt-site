@@ -2,7 +2,7 @@
    полный список характеристик, похожие товары из той же категории и направления. */
 (function () {
   const { products, categories, novelties } = window.APEX_DATA;
-  const { esc, money, icon, summary, specPair, stockLabel, productCard, imageOf, sectionOf, priceKind, partnerLine } = window.ApexUI;
+  const { esc, money, icon, summary, specPair, stockLabel, productCard, imageOf, sectionOf, priceKind, partnerLine, priceMain } = window.ApexUI;
   const store = window.ApexStore;
   const root = document.getElementById('product-root');
   const crumbs = document.getElementById('breadcrumbs');
@@ -71,7 +71,7 @@
         ${keyFacts.length ? `<dl class="facts">${keyFacts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
         <div class="pdp-buy glass">
           <div class="price price-lg">
-            ${p.price ? `<span class="muted">${priceKind(p)}</span><strong>${money(p.price)}</strong>` : '<strong class="price-ask">Цена по запросу</strong><span class="muted">Менеджер пришлёт условия в ответ на заявку</span>'}
+            ${p.price ? `<span class="muted">${priceKind(p)}</span>${priceMain(p)}` : '<strong class="price-ask">Цена по запросу</strong><span class="muted">Менеджер пришлёт условия в ответ на заявку</span>'}
           </div>
           ${window.ApexAuth?.isPartner
             ? `<div class="locked is-open"><div><b>Цена партнёра</b><span data-pp="${esc(p.sku)}">${partnerLine(p)}</span></div></div>`

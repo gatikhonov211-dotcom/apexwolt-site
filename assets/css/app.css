@@ -695,7 +695,12 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .locked.is-open [data-pp]{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 8px}
 .pp-markup{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:rgba(31,157,85,.1);color:var(--green);font-weight:600;font-size:12px;line-height:18px;white-space:nowrap;vertical-align:1px}
 .locked.is-open span .pp-markup{font-size:13px}
-.price .pp-markup,.locked.is-open .pp-markup{margin-left:auto;font-size:13px}
+.price-main{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pm-slot:empty{display:none}
+.pm-plus{display:none}
+@media (max-width:600px){.price:not(.price-lg) .pm-word{display:none}.price:not(.price-lg) .pm-plus{display:inline}.price-main{flex-wrap:nowrap}.price-main .pp-markup{padding:1px 6px}}
+.price-main .pp-markup{margin-left:auto;font-size:13px}
+.price-lg .price-main .pp-markup{font-size:14px;padding:3px 10px}
 .locked.is-open b{display:block}
 .locked.is-open span b{display:inline;color:var(--blue);font-size:18px}
 .auth-form{align-self:start}
