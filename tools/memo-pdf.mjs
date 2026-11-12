@@ -17,7 +17,7 @@ const inline = s => esc(s)
   .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
   .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2">$1</a>')
   .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
-  .replace(/(^|[\s(])(https:\/\/[^\s)<,]+)/g, '$1<a href="$2">$2</a>');
+  .replace(/(^|[\s(])(https:\/\/[^\s)<,]*[^\s)<,:.])/g, '$1<a href="$2">$2</a>');
 
 const lines = md.split('\n');
 let html = '';
