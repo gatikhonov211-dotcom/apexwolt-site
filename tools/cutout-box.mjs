@@ -1,6 +1,7 @@
 // Коробка на сером фоне → коробка на белом (нейросеть путает белый картон с фоном). node tools/cutout-box.mjs <вход> <выход>
 // Фон оценивается по краям кадра (для каждой строки — среднее слева и справа); пиксель — коробка, если заметно отличается от фона.
 // Затем выпуклая оболочка найденных точек (коробка выпуклая) и исходные пиксели внутри неё на белом фоне.
+import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const sharp = require('sharp');
 const [inp, out] = process.argv.slice(2);
