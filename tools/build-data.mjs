@@ -148,9 +148,12 @@ for (const c of Object.values(categories)) c.image = withVersion(c.image);
 
 const data = { sections, categories, products, novelties: novelties.filter(inNoveltySection) };
 // Старые файлы каталога (PNG и т. п.) удаляем, оставляем только актуальные WebP.
-const keep = new Set(convertJobs.map(j => path.basename(j.to)));
+// Фото каталога, которые заменила галерея из photo-map.json (например, SUMO и сварочные аппараты), тоже удаляются.
+const used = new Set([...products.flatMap(p => [p.image, ...p.images]), ...Object.values(categories).map(c => c.image)]
+  .filter(Boolean).map(s => path.basename(s.split('?')[0])));
+const keep = new Set(convertJobs.map(j => path.basename(j.to)).filter(f => used.has(f)));
 for (const f of fs.readdirSync(imgOut)) if (!keep.has(f)) fs.rmSync(path.join(imgOut, f));
-for (const job of convertJobs) {
+for (const job of convertJobs.filter(j => keep.has(path.basename(j.to)))) {
   if (fs.existsSync(job.to) && fs.statSync(job.to).mtimeMs >= fs.statSync(job.from).mtimeMs) continue;
   await sharp(job.from).resize(900, 900, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 82, alphaQuality: 90 }).toFile(job.to);
 }
