@@ -12,14 +12,16 @@ const px = (x, y) => { const i = (y * W + x) * C; return [data[i], data[i + 1], 
 const E = Math.round(W * 0.02);
 const fg = new Uint8Array(W * H);
 for (let y = 0; y < H; y++) {
-  let bg = [0, 0, 0], n = 0;
-  for (const x of [...Array(E).keys(), ...Array(E).keys()].map((k, i) => i < E ? k : W - 1 - k)) { const p = px(x, y); bg[0] += p[0]; bg[1] += p[1]; bg[2] += p[2]; n++; }
-  bg = bg.map(v => v / n);
+  // Яркость фона отдельно у левого и правого края строки, между ними — плавный переход (фон часто светлее с одной стороны).
+  const edge = from => { let s = 0; for (let k = 0; k < E; k++) { const p = px(from(k), y); s += (p[0] + p[1] + p[2]) / 3; } return s / E; };
+  const bgL = edge(k => k), bgR = edge(k => W - 1 - k);
   for (let x = 0; x < W; x++) {
     const [r, g, b] = px(x, y);
-    const d = Math.max(Math.abs(r - bg[0]), Math.abs(g - bg[1]), Math.abs(b - bg[2]));
+    // Коробка — то, что светлее фона (белый картон) или цветное (красная печать).
+    // Тень на полу темнее фона и серая — в контур не попадает (иначе по краям остаются серые клинья).
+    const lighter = (r + g + b) / 3 - (bgL + (bgR - bgL) * x / (W - 1));
     const chroma = Math.max(r, g, b) - Math.min(r, g, b);
-    fg[y * W + x] = d > 22 || chroma > 40 ? 1 : 0;
+    fg[y * W + x] = lighter > 14 || chroma > 45 ? 1 : 0;
   }
 }
 // строки: самые левые/правые точки длинных отрезков (шум отсекаем — нужен отрезок не короче 1% ширины)
