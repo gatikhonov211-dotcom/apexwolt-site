@@ -689,6 +689,11 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .form-msg.is-ok{color:var(--green)}
 .partner-line a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .partner-line b{color:var(--blue);font-weight:700}
+.pp-own{white-space:nowrap}
+.price small.partner-line{flex-wrap:wrap;row-gap:3px}
+.pp-markup{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:rgba(31,157,85,.1);color:var(--green);font-weight:600;font-size:12px;line-height:18px;white-space:nowrap;vertical-align:1px}
+.locked.is-open span .pp-markup{font-size:13px}
+.price .pp-markup{margin-left:0}
 .locked.is-open b{display:block}
 .locked.is-open span b{display:inline;color:var(--blue);font-size:18px}
 .auth-form{align-self:start}

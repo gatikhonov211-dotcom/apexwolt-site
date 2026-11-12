@@ -58,7 +58,9 @@
     if (pp === undefined) return `${icon.lock}${p.price ? 'Цена партнёра' : 'Условия'} — <a href="login.html">после входа</a>`;
     if (pp === null) return 'Ваша цена загружается…';
     if (pp === false) return 'Ваша цена — по запросу';
-    return `Ваша цена <b>${money(pp)}</b>`;
+    // Наценка партнёра до рекомендованной цены: (МРЦ/РРЦ − цена партнёра) / цена партнёра.
+    const markup = p.price > pp ? Math.round((p.price - pp) / pp * 100) : 0;
+    return `<span class="pp-own">Ваша цена <b>${money(pp)}</b></span>${markup ? `<span class="pp-markup" title="Наценка до ${priceKind(p)}: ${money(p.price - pp)}">наценка ${markup}%</span>` : ''}`;
   };
   const priceBlock = p => p.price
     ? `<strong>${money(p.price)}</strong><small class="partner-line" data-pp="${esc(p.sku)}">${partnerLine(p)}</small>`
