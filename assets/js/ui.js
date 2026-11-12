@@ -480,7 +480,7 @@
       return `<h2 id="drawer-title">Заявка отправлена</h2>
         <div class="empty is-success">${icon.check}<p class="empty-title">№ ${esc(id)}</p>
         <p>Заявка передана менеджеру APEXWOLT — он подтвердит наличие, цены и сроки.</p>
-        <p class="hint">Отправка заявки не является договором или оплатой. Вопросы — <a href="tel:+79086671194">8 908 667-11-94</a>.</p>
+        <p class="hint">Отправка заявки не является договором или оплатой. Вопросы — <a href="tel:+79086671194">+79086671194</a>.</p>
         <button type="button" class="button button-ghost" data-close>Готово</button></div>`;
     }
   };
@@ -573,7 +573,7 @@
     }
     // Заявка уходит на сервер: он сохраняет её, пишет менеджерам и клиенту. Цены партнёра сервер считает сам —
     // из браузера передаются только артикулы, количество и МРЦ/РРЦ для справки.
-    if (!auth) { msg.textContent = 'Отправка временно недоступна — позвоните 8 908 667-11-94.'; return; }
+    if (!auth) { msg.textContent = 'Отправка временно недоступна — позвоните +79086671194.'; return; }
     const f = form.elements;
     const body = {
       items: store.request().map(r => { const p = store.byId(r.id); return { sku: p.sku, title: p.title, qty: r.qty, retail: p.price || null, retailKind: p.price ? priceKind(p) : null }; }),
@@ -596,7 +596,7 @@
         form.querySelectorAll('input, textarea, button').forEach(x => { x.disabled = false; });
         form.querySelectorAll('[readonly]').forEach(x => { x.disabled = false; });
         submit.textContent = 'Отправить менеджеру';
-        msg.textContent = err.data?.errors ? err.message : `${err.message}. Состав заявки сохранён — попробуйте ещё раз или позвоните 8 908 667-11-94.`;
+        msg.textContent = err.data?.errors ? err.message : `${err.message}. Состав заявки сохранён — попробуйте ещё раз или позвоните +79086671194.`;
         const field = err.data?.errors && Object.keys(err.data.errors)[0];
         const el = field && f[field === 'consent' ? 'consent' : field];
         if (el && el.focus) { el.classList.add('is-invalid'); el.focus(); }

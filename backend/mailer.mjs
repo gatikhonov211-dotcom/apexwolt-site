@@ -71,7 +71,7 @@ export function managerMessage(r) {
 }
 
 export function clientMessage(r) {
-  const text = `Здравствуйте, ${r.contact.name}!\n\nЗаявка ${r.id} на партнёрство для «${r.company.name}» (ИНН ${r.company.inn}) принята. Менеджер проверит организацию и свяжется с вами. Когда доступ к партнёрским ценам будет открыт, мы пришлём письмо на этот адрес.\n\nОтправка заявки не является заключением договора.\n\nAPEXWOLT · idea@apexwolt.ru · 8 908 667-11-94`;
+  const text = `Здравствуйте, ${r.contact.name}!\n\nЗаявка ${r.id} на партнёрство для «${r.company.name}» (ИНН ${r.company.inn}) принята. Менеджер проверит организацию и свяжется с вами. Когда доступ к партнёрским ценам будет открыт, мы пришлём письмо на этот адрес.\n\nОтправка заявки не является заключением договора.\n\nAPEXWOLT · idea@apexwolt.ru · +79086671194`;
   return {
     to: r.contact.email,
     replyTo: managers()[0],
@@ -79,7 +79,7 @@ export function clientMessage(r) {
     text,
     html: layout('Заявка принята', `<p style="font-size:15px;line-height:1.5">Здравствуйте, ${esc(r.contact.name)}!</p>
 <p style="font-size:15px;line-height:1.5">Заявка <b>${esc(r.id)}</b> на партнёрство для «${esc(r.company.name)}» (ИНН ${esc(r.company.inn)}) принята. Менеджер проверит организацию и свяжется с вами. Когда доступ к партнёрским ценам будет открыт, мы пришлём письмо на этот адрес.</p>
-<p style="font-size:13px;color:#667;line-height:1.5">Отправка заявки не является заключением договора.<br>APEXWOLT · idea@apexwolt.ru · 8 908 667-11-94</p>`)
+<p style="font-size:13px;color:#667;line-height:1.5">Отправка заявки не является заключением договора.<br>APEXWOLT · idea@apexwolt.ru · +79086671194</p>`)
   };
 }
 
@@ -113,11 +113,11 @@ export async function sendAccessGranted(r) {
     to: r.contact.email,
     replyTo: managers()[0],
     subject: 'Доступ к партнёрским ценам открыт — APEXWOLT',
-    text: `Здравствуйте, ${r.contact.name}!\n\nЗаявка ${r.id} для «${r.company.name}» одобрена. Войдите в кабинет по адресу ${link} — укажите ${r.contact.email}, и мы пришлём код. После входа в каталоге будут видны ваши партнёрские цены.\n\nAPEXWOLT · idea@apexwolt.ru · 8 908 667-11-94`,
+    text: `Здравствуйте, ${r.contact.name}!\n\nЗаявка ${r.id} для «${r.company.name}» одобрена. Войдите в кабинет по адресу ${link} — укажите ${r.contact.email}, и мы пришлём код. После входа в каталоге будут видны ваши партнёрские цены.\n\nAPEXWOLT · idea@apexwolt.ru · +79086671194`,
     html: layout('Доступ открыт', `<p style="font-size:15px;line-height:1.5">Здравствуйте, ${esc(r.contact.name)}!</p>
 <p style="font-size:15px;line-height:1.5">Заявка <b>${esc(r.id)}</b> для «${esc(r.company.name)}» одобрена. После входа в каталоге будут видны ваши партнёрские цены.</p>
 <p style="margin:20px 0"><a href="${esc(link)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-size:15px">Войти в кабинет</a></p>
-<p style="font-size:13px;color:#667;line-height:1.5">Для входа укажите ${esc(r.contact.email)} — мы пришлём одноразовый код.<br>APEXWOLT · idea@apexwolt.ru · 8 908 667-11-94</p>`)
+<p style="font-size:13px;color:#667;line-height:1.5">Для входа укажите ${esc(r.contact.email)} — мы пришлём одноразовый код.<br>APEXWOLT · idea@apexwolt.ru · +79086671194</p>`)
   });
 }
 
@@ -159,10 +159,10 @@ export async function notifyOrder(o) {
   jobs.push(send({
     to: o.contact.email, replyTo: managers()[0],
     subject: `Заявка ${o.id} принята — APEXWOLT`,
-    text: `Здравствуйте, ${o.contact.name}!\n\nЗаявка ${o.id} для «${o.company.name}» принята. Менеджер подтвердит наличие, цены и сроки.\n\n${orderText(o)}\n\nОтправка заявки не является договором или оплатой.\n\nAPEXWOLT · idea@apexwolt.ru · 8 908 667-11-94`,
+    text: `Здравствуйте, ${o.contact.name}!\n\nЗаявка ${o.id} для «${o.company.name}» принята. Менеджер подтвердит наличие, цены и сроки.\n\n${orderText(o)}\n\nОтправка заявки не является договором или оплатой.\n\nAPEXWOLT · idea@apexwolt.ru · +79086671194`,
     html: layout('Заявка принята', `<p style="font-size:15px;line-height:1.5">Здравствуйте, ${esc(o.contact.name)}!</p>
 <p style="font-size:15px;line-height:1.5">Заявка <b>${esc(o.id)}</b> для «${esc(o.company.name)}» принята. Менеджер подтвердит наличие, цены и сроки.</p>${orderTable(o)}
-<p style="margin-top:18px;font-size:13px;color:#667;line-height:1.5">Отправка заявки не является договором или оплатой.<br>APEXWOLT · idea@apexwolt.ru · 8 908 667-11-94</p>`)
+<p style="margin-top:18px;font-size:13px;color:#667;line-height:1.5">Отправка заявки не является договором или оплатой.<br>APEXWOLT · idea@apexwolt.ru · +79086671194</p>`)
   }));
   const results = await Promise.allSettled(jobs);
   for (const x of results) if (x.status === 'rejected') console.error('[mail]', x.reason?.message);
