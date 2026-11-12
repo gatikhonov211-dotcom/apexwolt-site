@@ -146,7 +146,35 @@ test('Менеджер одобряет заявку, партнёр входи�
   assert.equal((await call('GET', '/api/admin/costs', { token: partner.json.token })).statusCode, 403);
   assert.equal((await call('GET', '/api/prices', { token: manager })).statusCode, 403);
 
-  // отклонение закрывает доступ уже выданному токену
+  // пароль: задать после входа по коду, войти по паролю, неверный пароль
+  assert.equal(partner.json.user.hasPassword, false);
+  const pw = (email, password) => call('POST', '/api/auth/login', { body: { email, password } });
+  assert.equal((await pw('buyer@example.ru', 'Secret-pass-1')).statusCode, 401, 'пароль ещё не задан');
+  assert.equal((await call('POST', '/api/auth/password', { body: { password: 'Secret-pass-1' } })).statusCode, 401, 'без входа нельзя');
+  assert.equal((await call('POST', '/api/auth/password', { token: partner.json.token, body: { password: '1234567' } })).statusCode, 422);
+  assert.equal((await call('POST', '/api/auth/password', { token: partner.json.token, body: { password: '12345678' } })).statusCode, 422, 'только цифры');
+  const set = await call('POST', '/api/auth/password', { token: partner.json.token, body: { password: 'Secret-pass-1' } });
+  assert.equal(set.statusCode, 200);
+  assert.equal(set.json.user.hasPassword, true);
+  const byPw = await pw('Buyer@Example.ru', 'Secret-pass-1');
+  assert.equal(byPw.statusCode, 200);
+  assert.equal(byPw.json.user.role, 'partner');
+  assert.equal(byPw.json.user.hasPassword, true);
+  assert.equal((await call('GET', '/api/prices', { token: byPw.json.token })).statusCode, 200);
+  const wrong = await pw('buyer@example.ru', 'Secret-pass-2');
+  assert.equal(wrong.statusCode, 401);
+  assert.equal(wrong.json.error, (await pw('nobody@example.com', 'Secret-pass-1')).json.error, 'одинаковый ответ для чужого адреса');
+  for (let i = 0; i < 9; i++) await pw('buyer@example.ru', 'Secret-pass-2');
+  assert.match((await pw('buyer@example.ru', 'Secret-pass-1')).json.error, /подождите/, 'после 10 ошибок — пауза даже для верного пароля');
+  const fresh = await login('buyer@example.ru');
+  assert.equal(fresh.statusCode, 200, 'вход по коду работает и во время паузы');
+
+  // менеджер тоже может задать пароль
+  await call('POST', '/api/auth/password', { token: manager, body: { password: 'Manager-pass-1' } });
+  assert.equal((await pw('manager2@example.com', 'Manager-pass-1')).json.user.role, 'manager');
+
+  // отклонение закрывает доступ уже выданному токену и удаляет пароль
   await call('POST', '/api/admin/registrations/3817050540', { token: manager, body: { action: 'reject' } });
   assert.equal((await call('GET', '/api/prices', { token: partner.json.token })).statusCode, 401);
+  assert.equal((await pw('buyer@example.ru', 'Secret-pass-1')).statusCode, 401);
 });

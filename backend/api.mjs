@@ -6,6 +6,8 @@
 //   POST /api/register                       — заявка партнёра (статус «на проверке»)
 //   POST /api/auth/request   {email}         — код входа на почту (партнёр после одобрения или менеджер)
 //   POST /api/auth/verify    {email, code}   — токен сессии
+//   POST /api/auth/login     {email, password} — вход по паролю (если пользователь его задал)
+//   POST /api/auth/password  {password}      — задать или сменить пароль (нужен вход)
 //   GET  /api/me                             — кто вошёл
 //   GET  /api/prices                         — цены партнёра: закупка × коэффициент организации
 //   GET  /api/admin/registrations            — заявки (менеджер)
@@ -17,7 +19,7 @@ import { isValidInn } from './inn.mjs';
 import { findPartyByInn, MOCK_PARTIES } from './dadata.mjs';
 import { findRegistrationByInn, getRegistration, saveRegistration, listRegistrations, getUser, saveUser, removeUser, getCosts, saveCosts } from './store.mjs';
 import { notifyRegistration, sendLoginCode, sendAccessGranted } from './mailer.mjs';
-import { normalizeEmail, emailKey, isManager, issueCode, checkCode, signToken, verifyToken } from './auth.mjs';
+import { normalizeEmail, emailKey, isManager, issueCode, checkCode, signToken, verifyToken, passwordProblem, hasPassword, setPassword, checkPassword, removePassword } from './auth.mjs';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[\d\s()-]{10,20}$/;
@@ -105,6 +107,17 @@ const publicCompany = reg => ({
   contact: reg.contact.name, email: reg.contact.email
 });
 
+const userView = async s => ({ role: s.role, email: s.email, company: s.registration ? publicCompany(s.registration) : null, hasPassword: await hasPassword(s.email) });
+
+// Выдать токен после проверки кода или пароля: права (менеджер / одобренный партнёр) проверяются заново.
+async function startSession(email) {
+  const role = isManager(email) ? 'manager' : 'partner';
+  const token = signToken({ sub: email, role });
+  const session = await sessionOf({ headers: { authorization: `Bearer ${token}` } });
+  if (!session) throw httpError(403, 'Доступ к кабинету закрыт — свяжитесь с менеджером');
+  return { ok: true, token, user: await userView(session) };
+}
+
 const coefficientOf = v => {
   const n = Number(String(v ?? '').replace(',', '.'));
   return Number.isFinite(n) && n >= COEFFICIENT_MIN && n <= COEFFICIENT_MAX ? Math.round(n * 1000) / 1000 : null;
@@ -166,17 +179,34 @@ const routes = {
     if (tooMany(ip, 'verify', 20)) throw httpError(429, 'Слишком много попыток, подождите минуту');
     const result = await checkCode(email, code);
     if (result !== true) throw httpError(401, result);
-    const role = isManager(email) ? 'manager' : 'partner';
-    const token = signToken({ sub: email, role });
-    const session = await sessionOf({ headers: { authorization: `Bearer ${token}` } });
-    if (!session) throw httpError(403, 'Доступ к кабинету закрыт — свяжитесь с менеджером');
-    return { ok: true, token, user: { role, email, company: session.registration ? publicCompany(session.registration) : null } };
+    return startSession(email);
+  },
+
+  'POST auth/login': async ({ body, ip }) => {
+    const email = normalizeEmail(body.email);
+    const password = String(body.password ?? '');
+    if (!EMAIL_RE.test(email) || !password) throw httpError(422, 'Введите email и пароль');
+    if (password.length > 256) throw httpError(401, 'Неверный email или пароль');
+    if (tooMany(ip, 'login', 20)) throw httpError(429, 'Слишком много попыток, подождите минуту');
+    const result = await checkPassword(email, password);
+    if (result !== true) throw httpError(401, result);
+    return startSession(email);
+  },
+
+  'POST auth/password': async ({ event, body }) => {
+    const s = await sessionOf(event);
+    if (!s) throw httpError(401, 'Войдите заново');
+    const problem = passwordProblem(body.password);
+    if (problem) throw httpError(422, problem);
+    await setPassword(s.email, body.password);
+    console.log(`[auth] пароль задан (${s.role})`);
+    return { ok: true, user: await userView(s) };
   },
 
   'GET me': async ({ event }) => {
     const s = await sessionOf(event);
     if (!s) throw httpError(401, 'Войдите заново');
-    return { ok: true, user: { role: s.role, email: s.email, company: s.registration ? publicCompany(s.registration) : null } };
+    return { ok: true, user: await userView(s) };
   },
 
   'GET prices': async ({ event }) => {
@@ -212,6 +242,7 @@ const routes = {
       Object.assign(reg, { status: 'rejected', decidedAt: now, decidedBy: s.email, updatedAt: now });
       await saveRegistration(reg);
       await removeUser(key);
+      await removePassword(reg.contact.email);
     } else throw httpError(422, 'Неизвестное действие');
     console.log(`[admin] ${s.email}: ${action} ${reg.id}`);
     return { ok: true, registration: reg };

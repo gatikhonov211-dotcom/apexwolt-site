@@ -7,7 +7,7 @@
   <meta name="description" content="Вход в кабинет партнёра APEXWOLT по коду из письма.">
   <meta name="robots" content="noindex">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/css/app.css?v=4c33740d">
+  <link rel="stylesheet" href="assets/css/app.css?v=93fc4a4b">
 </head>
 <body data-page="login">
   <a class="skip-link" href="#main">К содержимому</a>
@@ -21,17 +21,41 @@
     <div class="partner-layout">
       <header class="partner-intro">
         <h1>Вход в кабинет</h1>
-        <p class="category-lead">Для партнёров с одобренной заявкой и менеджеров APEXWOLT. Пароль не нужен — пришлём одноразовый код на почту.</p>
+        <p class="category-lead">Для партнёров с одобренной заявкой и менеджеров APEXWOLT. Войдите по паролю или по одноразовому коду из письма.</p>
         <p class="category-lead">Ещё не партнёр? <a class="link" href="partner.html">Оставьте заявку</a> — после проверки менеджер откроет доступ.</p>
       </header>
 
-      <form class="partner-form auth-form" id="login-email" novalidate>
+      <form class="partner-form auth-form" id="login-pass" novalidate>
+        <div class="field">
+          <label for="lg-pw-email">Email</label>
+          <input id="lg-pw-email" name="email" type="email" autocomplete="username" inputmode="email" required>
+        </div>
+        <div class="field">
+          <label for="lg-pw">Пароль</label>
+          <div class="pw-wrap">
+            <input id="lg-pw" name="password" type="password" autocomplete="current-password" required>
+            <button type="button" class="pw-toggle" aria-label="Показать пароль" aria-pressed="false" data-pw-toggle="lg-pw"></button>
+          </div>
+        </div>
+        <p class="form-msg" id="lg-pw-msg" role="alert"></p>
+        <button type="submit" class="button button-dark button-wide">Войти</button>
+        <div class="auth-links">
+          <button type="button" class="link" data-to-code>Войти по коду из письма</button>
+          <button type="button" class="link muted" data-to-code>Забыли пароль?</button>
+        </div>
+        <p class="auth-hint">Первый вход — по коду из письма. Пароль можно задать потом в кабинете.</p>
+      </form>
+
+      <form class="partner-form auth-form" id="login-email" novalidate hidden>
         <div class="field">
           <label for="lg-email">Email, указанный в заявке</label>
           <input id="lg-email" name="email" type="email" autocomplete="email" inputmode="email" required>
         </div>
         <p class="form-msg" id="lg-email-msg" role="alert"></p>
         <button type="submit" class="button button-dark button-wide">Получить код</button>
+        <div class="auth-links">
+          <button type="button" class="link muted" data-to-pass>Войти по паролю</button>
+        </div>
       </form>
 
       <form class="partner-form auth-form" id="login-code" novalidate hidden>
@@ -45,6 +69,7 @@
         <div class="auth-links">
           <button type="button" class="link" id="lg-resend">Отправить код ещё раз</button>
           <button type="button" class="link muted" id="lg-change">Другой email</button>
+          <button type="button" class="link muted" data-to-pass>Войти по паролю</button>
         </div>
       </form>
     </div>
@@ -57,6 +82,7 @@
   <script src="assets/js/data.js?v=c843bd6d"></script>
   <script src="assets/js/store.js?v=d574a511"></script>
   <script src="assets/js/ui.js?v=9f7319c5"></script>
-  <script src="assets/js/login.js?v=9746a4f1"></script>
+  <script src="assets/js/login.js?v=f6ca8513"></script>
+  <script src="assets/js/password.js?v=79714ebf"></script>
 </body>
 </html>

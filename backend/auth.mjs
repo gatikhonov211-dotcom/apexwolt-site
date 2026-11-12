@@ -65,3 +65,48 @@ export function verifyToken(token, now = Date.now()) {
     return payload.exp > now ? payload : null;
   } catch { return null; }
 }
+
+// ---------- Пароль (по желанию пользователя, вместо кода при каждом входе) ----------
+//   passwords/<ключ email>.json — соль и хеш scrypt, счётчик неудачных попыток и блокировка.
+//   10 неверных паролей подряд — пауза 15 минут (вход по коду при этом работает).
+const PW_MIN = 8;
+const PW_MAX = 128;
+const PW_MAX_FAILS = 10;
+const PW_LOCK = 15 * 60_000;
+const pwKey = email => `passwords/${emailKey(email)}.json`;
+const scrypt = (password, salt) => new Promise((resolve, reject) =>
+  crypto.scrypt(String(password).normalize('NFKC'), salt, 32, { N: 16384, r: 8, p: 1 }, (err, key) => err ? reject(err) : resolve(key)));
+
+export const passwordProblem = password => {
+  const p = String(password ?? '');
+  if (p.length < PW_MIN) return `Пароль — не короче ${PW_MIN} символов`;
+  if (p.length > PW_MAX) return `Пароль — не длиннее ${PW_MAX} символов`;
+  if (/^\d+$/.test(p) || /^(.)\1+$/.test(p)) return 'Слишком простой пароль — добавьте буквы';
+  return null;
+};
+
+export const hasPassword = async email => Boolean(await getJson(pwKey(email)));
+export const removePassword = email => remove(pwKey(email));
+
+export async function setPassword(email, password, now = Date.now()) {
+  const salt = crypto.randomBytes(16);
+  const hash = await scrypt(password, salt);
+  await putJson(pwKey(email), { salt: b64url(salt), hash: b64url(hash), setAt: new Date(now).toISOString(), fails: 0, lockedUntil: 0 });
+}
+
+// Проверить пароль. true — верный, иначе строка с причиной (одинаковая для «нет такого» и «неверный»).
+export async function checkPassword(email, password, now = Date.now()) {
+  const WRONG = 'Неверный email или пароль';
+  const rec = await getJson(pwKey(email));
+  if (!rec) { await scrypt(password, crypto.randomBytes(16)); return WRONG; } // одинаковое время ответа
+  if (rec.lockedUntil > now) return `Слишком много попыток — подождите ${Math.ceil((rec.lockedUntil - now) / 60_000)} мин или войдите по коду из письма`;
+  const hash = await scrypt(password, Buffer.from(rec.salt, 'base64url'));
+  if (crypto.timingSafeEqual(hash, Buffer.from(rec.hash, 'base64url'))) {
+    if (rec.fails) await putJson(pwKey(email), { ...rec, fails: 0, lockedUntil: 0 });
+    return true;
+  }
+  const fails = rec.fails + 1;
+  const locked = fails >= PW_MAX_FAILS;
+  await putJson(pwKey(email), { ...rec, fails: locked ? 0 : fails, lockedUntil: locked ? now + PW_LOCK : 0 });
+  return locked ? `Слишком много попыток — подождите ${PW_LOCK / 60_000} мин или войдите по коду из письма` : WRONG;
+}
