@@ -16,7 +16,7 @@ const bucket = args[1] || 'b2b.apexwoltshop.ru';
 const YC = process.env.YC_BIN || 'yc';
 const HOST = 'https://storage.yandexcloud.net';
 
-const SKIP = [/^backend\//, /^tools\//, /^node_modules\//, /^\./, /^README\.md$/, /^package(-lock)?\.json$/, /^serve\.json$/, /^CNAME$/];
+const SKIP = [/^backend\//, /^tools\//, /^node_modules\//, /^\./, /\.md$/, /^package(-lock)?\.json$/, /^serve\.json$/, /^CNAME$/];
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'application/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
