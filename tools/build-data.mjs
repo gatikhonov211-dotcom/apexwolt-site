@@ -64,6 +64,10 @@ for (const [key, c] of Object.entries(categoryData)) {
   }
 }
 
+// Исправленный артикул фена; ID сохраняется для ссылок, фото и корзин.
+const heatGun = products.find(p => p.id === "apexwolt-7-02-12");
+if (heatGun) heatGun.sku = "7/02/11";
+
 // Цены для сайта поверх каталога основного проекта (tools/price-overrides.json).
 // kinds — подпись цены у позиции («РРЦ»/«МРЦ»); без неё подпись выбирается по бренду (ApexUI.priceKind).
 const { prices: priceOverrides, kinds: priceKinds = {} } = JSON.parse(fs.readFileSync(path.join(root, 'tools', 'price-overrides.json'), 'utf8'));
