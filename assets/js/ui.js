@@ -442,7 +442,15 @@
         </div>
         <p class="hint">Введите код и количество, нажмите Enter. Можно сканировать штрихкод сканером с клавиатурным вводом.</p>
         <p class="form-msg" role="status" aria-live="polite" data-quick-message></p>
-      </form>`;
+      </form>
+      <section class="order-import" aria-labelledby="order-import-title">
+        <h3 id="order-import-title">Загрузить заявку из Excel</h3>
+        <p class="hint" id="order-file-help">Колонки: «Артикул» или «ШК» и «Количество». Повторяющиеся товары суммируются с корзиной. Excel .xlsx или .xls, до 5 МБ и 5000 строк.</p>
+        <label class="field" for="order-file">Выберите файл</label>
+        <input id="order-file" type="file" accept=".xlsx,.xls" data-order-file aria-describedby="order-file-help">
+        <p class="hint">Файл обрабатывается на вашем устройстве. Товары попадут в корзину после проверки и нажатия кнопки.</p>
+        <div data-import-preview></div>
+      </section>`;
       const rows = store.request();
       if (!rows.length) return `<h2 id="drawer-title">Заявка</h2>${quick}${empty('В заявке пока нет позиций', 'Добавьте товары из каталога — менеджер подтвердит наличие, сроки и персональные цены.')}`;
       // Партнёр после входа: заявка считается по его ценам (закупка × коэффициент с сервера);

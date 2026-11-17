@@ -765,3 +765,14 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .quick-order-fields input { width: 100%; min-width: 0; }
 .quick-order-fields button { grid-column: 1 / -1; }
 .card-barcode { font-size: 12px; line-height: 1.5; color: var(--muted, #6b7280); min-height: 18px; overflow-wrap: anywhere; margin: 4px 0 8px; }
+
+/* Загрузка заявки Excel */
+.order-import { padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+.order-import h3 { margin: 0 0 12px; }
+.order-import input[type=file] { width: 100%; max-width: 100%; font: inherit; font-size: 14px; }
+.order-import [data-import-preview] { overflow-wrap: anywhere; font-size: 14px; }
+.order-import details { margin: 12px 0; }
+.order-import summary { cursor: pointer; }
+.import-lines { max-height: 240px; overflow: auto; padding-left: 20px; }
+.import-lines li { margin-bottom: 10px; }
+.import-lines small { color: var(--muted); }

@@ -51,6 +51,14 @@
       if (n) next[id] = n; else delete next[id];
       write(KEYS.req, next);
     },
+    addRequestRows: rows => {
+      const next = { ...memory[KEYS.req] };
+      for (const { id, qty } of rows) {
+        if (!byId(id) || !Number.isInteger(qty) || qty < 1 || (next[id] || 0) + qty > 9999) throw new Error('Проверьте товары и количество.');
+        next[id] = (next[id] || 0) + qty;
+      }
+      write(KEYS.req, next);
+    },
     addToRequest: id => window.ApexStore.setQty(id, (memory[KEYS.req][id] || 0) + 1),
     clearRequest: () => write(KEYS.req, {})
   };
