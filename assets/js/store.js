@@ -29,6 +29,11 @@
 
   window.ApexStore = {
     COMPARE_LIMIT,
+    findByCode: code => {
+      const normalize = s => String(s || '').normalize('NFKC').trim().toUpperCase().replace(/\s+/g, '');
+      const key = normalize(code);
+      return key ? window.APEX_DATA.products.filter(p => normalize(p.sku) === key || (p.barcodes || []).some(b => normalize(b) === key)) : [];
+    },
     byId,
     onChange: fn => listeners.add(fn),
     favorites: () => memory[KEYS.fav].filter(byId),

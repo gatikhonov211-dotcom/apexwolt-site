@@ -146,6 +146,8 @@ const withVersion = src => {
 for (const p of products) { p.image = withVersion(p.image); p.images = p.images.map(withVersion); }
 for (const c of Object.values(categories)) c.image = withVersion(c.image);
 
+const barcodeMap = JSON.parse(fs.readFileSync(path.join(root, 'tools', 'barcodes.json'), 'utf8'));
+for (const p of products) p.barcodes = barcodeMap[p.id] || [];
 const data = { sections, categories, products, novelties: novelties.filter(inNoveltySection) };
 // Старые файлы каталога (PNG и т. п.) удаляем, оставляем только актуальные WebP.
 // Фото каталога, которые заменила галерея из photo-map.json (например, SUMO и сварочные аппараты), тоже удаляются.

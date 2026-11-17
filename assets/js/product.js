@@ -66,7 +66,7 @@
         <p class="pdp-kicker">${esc(cat.title)}${p.brand ? ` · ${esc(p.brand)}` : ''}</p>
         <h1>${esc(p.title)}</h1>
         ${p.title !== p.name ? `<p class="pdp-fullname">${esc(p.name)}</p>` : ''}
-        <p class="card-sku">Артикул: ${esc(p.sku)}</p>
+        <p class="card-sku">Артикул: ${esc(p.sku)}</p><p class="card-barcode">Штрихкод: ${esc((p.barcodes || []).join(', ') || 'Не указан')}</p>
         ${stockLabel(p)}
         ${keyFacts.length ? `<dl class="facts">${keyFacts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
         <div class="pdp-buy glass">

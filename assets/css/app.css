@@ -756,3 +756,12 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .admin-order-items li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line, #e7e8ec)}
 .admin-order-items li span:last-child{white-space:nowrap;text-align:right}
 .admin-order-items small{color:var(--muted)}
+
+/* Быстрый ввод заявки */
+.quick-order { padding: 20px 0; border-bottom: 1px solid var(--line, #e5e7eb); margin-bottom: 20px; }
+.quick-order h3 { margin: 0 0 14px; }
+.quick-order-fields { display: grid; grid-template-columns: minmax(0,1fr) 88px; gap: 12px; align-items: end; }
+.quick-order-fields .field { min-width: 0; margin: 0; }
+.quick-order-fields input { width: 100%; min-width: 0; }
+.quick-order-fields button { grid-column: 1 / -1; }
+.card-barcode { font-size: 12px; line-height: 1.5; color: var(--muted, #6b7280); min-height: 18px; overflow-wrap: anywhere; margin: 4px 0 8px; }

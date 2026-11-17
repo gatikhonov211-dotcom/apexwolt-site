@@ -97,6 +97,7 @@
         <p class="card-kit"${p.kit ? '' : ' aria-hidden="true"'}>${p.kit ? esc(p.kit) : '&nbsp;'}</p>
         <p class="card-specs">${esc(summary(p))}</p>
         <p class="card-sku">Артикул: ${esc(p.sku)}</p>
+        <p class="card-barcode">Штрихкод: ${esc((p.barcodes || []).join(', ') || 'Не указан')}</p>
         ${stockLabel(p)}
       </div>
       <div class="card-foot">
@@ -432,8 +433,18 @@
         <button type="button" class="link muted" data-clear-compare>Очистить сравнение</button>`;
     },
     request() {
+      const quick = `<form id="quick-order" class="quick-order">
+        <h3>Быстрое добавление</h3>
+        <div class="quick-order-fields">
+          <div class="field"><label for="quick-code">Артикул или штрихкод</label><input id="quick-code" name="code" autocomplete="off" placeholder="Например, 7/14/04" required></div>
+          <div class="field"><label for="quick-qty">Кол-во, шт.</label><input id="quick-qty" name="qty" type="number" inputmode="numeric" min="1" max="9999" step="1" value="1" required></div>
+          <button type="submit" class="button button-dark">Добавить</button>
+        </div>
+        <p class="hint">Введите код и количество, нажмите Enter. Можно сканировать штрихкод сканером с клавиатурным вводом.</p>
+        <p class="form-msg" role="status" aria-live="polite" data-quick-message></p>
+      </form>`;
       const rows = store.request();
-      if (!rows.length) return `<h2 id="drawer-title">Заявка</h2>${empty('В заявке пока нет позиций', 'Добавьте товары из каталога — менеджер подтвердит наличие, сроки и персональные цены.')}`;
+      if (!rows.length) return `<h2 id="drawer-title">Заявка</h2>${quick}${empty('В заявке пока нет позиций', 'Добавьте товары из каталога — менеджер подтвердит наличие, сроки и персональные цены.')}`;
       // Партнёр после входа: заявка считается по его ценам (закупка × коэффициент с сервера);
       // позиции без цены партнёра — по МРЦ/РРЦ с пометкой; «цена по запросу» в сумму не входит.
       const partner = Boolean(auth && auth.isPartner);
@@ -454,7 +465,7 @@
       const c = partner ? auth.user.company || {} : {};
       const val = v => v ? ` value="${esc(v)}"` : '';
       const lock = partner && c.inn ? ' readonly' : '';
-      return `<h2 id="drawer-title">Заявка</h2>
+      return `<h2 id="drawer-title">Заявка</h2>${quick}
         <ul class="mini-list">${rows.map(r => miniRow(store.byId(r.id), `
           <div class="qty" role="group" aria-label="Количество">
             <button type="button" data-qty="-1" aria-label="Меньше">−</button>
@@ -557,6 +568,24 @@
     if (e.target.matches('[data-qty-input]')) store.setQty(e.target.closest('[data-id]').dataset.id, e.target.value);
   });
   drawer.addEventListener('submit', e => {
+    if (e.target.id === 'quick-order') {
+      e.preventDefault();
+      const form = e.target, input = form.elements.code;
+      const qty = Number(form.elements.qty.value);
+      const message = form.querySelector('[data-quick-message]');
+      if (!input.value.trim()) { message.textContent = 'Введите артикул или штрихкод.'; input.focus(); return; }
+      if (!Number.isInteger(qty) || qty < 1 || qty > 9999) { message.textContent = 'Укажите целое количество от 1 до 9999.'; form.elements.qty.focus(); return; }
+      const matches = store.findByCode(input.value);
+      if (matches.length !== 1) { message.textContent = matches.length ? 'Код относится к нескольким товарам. Используйте артикул.' : 'Товар не найден. Проверьте артикул или штрихкод; для части товаров ШК пока не указан.'; input.focus(); input.select(); return; }
+      const p = matches[0], total = store.qty(p.id) + qty;
+      if (total > 9999) { message.textContent = 'В заявке может быть не больше 9999 штук одной позиции.'; return; }
+      const draft = Object.fromEntries([...drawer.querySelectorAll('#request-form input, #request-form textarea')].map(el => [el.name, el.type === 'checkbox' ? el.checked : el.value]));
+      store.setQty(p.id, total);
+      for (const el of drawer.querySelectorAll('#request-form input, #request-form textarea')) if (Object.hasOwn(draft, el.name)) { if (el.type === 'checkbox') el.checked = draft[el.name]; else el.value = draft[el.name]; }
+      drawer.querySelector('[data-quick-message]').textContent = 'Добавлено: ' + p.title + ' — ' + qty + ' шт. Всего: ' + total + ' шт.';
+      drawer.querySelector('#quick-code').focus();
+      return;
+    }
     if (e.target.id !== 'request-form') return;
     e.preventDefault();
     const form = e.target;
