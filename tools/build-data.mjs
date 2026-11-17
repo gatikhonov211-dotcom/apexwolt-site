@@ -57,7 +57,7 @@ for (const [key, c] of Object.entries(categoryData)) {
     products.push({
       id, sku, name, brand: brand || '', category: key,
       stock: Number(stock) || 0, lead: Number(lead) || 0, price: Number(price) || 0,
-      eta: eta || '', description: description || '', specs: specs || [],
+      eta: eta || '', description: description || '', specs: (specs || []).map(spec => spec.replace(/^Мотор(?=\s*:)/i, "Двигатель")),
       // Только собственное фото товара: картинка категории показывает другую модель/комплектацию.
       image: image(img)
     });
