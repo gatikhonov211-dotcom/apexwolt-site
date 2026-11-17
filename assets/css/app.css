@@ -776,3 +776,9 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .import-lines { max-height: 240px; overflow: auto; padding-left: 20px; }
 .import-lines li { margin-bottom: 10px; }
 .import-lines small { color: var(--muted); }
+
+.excel-file-button{position:relative;overflow:hidden;cursor:pointer;min-height:44px;max-width:100%;white-space:normal;margin:4px 0;border-radius:var(--r-sm)}
+.excel-file-button svg{flex:none}
+.excel-file-button input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;padding:0}
+.excel-file-button:focus-within{outline:2px solid var(--blue);outline-offset:3px}
+@media(max-width:480px){.excel-file-button{width:100%}}

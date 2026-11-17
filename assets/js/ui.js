@@ -446,8 +446,11 @@
       <section class="order-import" aria-labelledby="order-import-title">
         <h3 id="order-import-title">Загрузить заявку из Excel</h3>
         <p class="hint" id="order-file-help">Колонки: «Артикул» или «ШК» и «Количество». Повторяющиеся товары суммируются с корзиной. Excel .xlsx или .xls, до 5 МБ и 5000 строк.</p>
-        <label class="field" for="order-file">Выберите файл</label>
-        <input id="order-file" type="file" accept=".xlsx,.xls" data-order-file aria-describedby="order-file-help">
+        <label class="button button-ghost excel-file-button" for="order-file">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M4 16v4h16v-4"/></svg>
+          <span>Выбрать Excel-файл</span>
+          <input id="order-file" type="file" accept=".xlsx,.xls" data-order-file aria-label="Выбрать Excel-файл" aria-describedby="order-file-help">
+        </label>
         <p class="hint">Файл обрабатывается на вашем устройстве. Товары попадут в корзину после проверки и нажатия кнопки.</p>
         <div data-import-preview></div>
       </section>`;
